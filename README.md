@@ -28,5 +28,12 @@ It supports 16 types of opcodes:
 There are 4096 memory cells of 14 bits each.
 It supports only ascii characters and whole numbers, real numbers throws an error.
 
+# Word architecture
++-----------+------------+------------+---------------+-------+
+|      10-13|         6-9|         4-5|            2-3|    0-1|
+|	    |            |            |               |       |
+| Not Used  |   Opcode	 |   source   |  destination  | A.R.E |
+|           |		 |            |               |       |
++-----------+------------+------------+---------------+-------+
 # Note
 The project is intended to work with ansi standard compiler
