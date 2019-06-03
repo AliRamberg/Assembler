@@ -3,7 +3,11 @@
 #include <errno.h>
 #include "asmbl.h"
 
-/* static register_t r0, r1, r2, r3, r4, r5, r6, r7; */
+/* 
+static register_t r0, r1, r2, r3, r4, r5, r6, r7;
+static int IC = 0;
+static int DC = 0; 
+*/
 
    
 /*
@@ -12,8 +16,8 @@
 int
 main(int argc, char const *argv[])
 {
+    int pass_return;
     FILE *fptr;     /* pointer to file object */
-    char *line;     /* each line in input file */
 
     if (argc < 2)
     {
@@ -27,35 +31,22 @@ main(int argc, char const *argv[])
         fprintf(stderr, "Failed to open file %s, %d\n", argv[1], errno);
         return EXIT_FAILURE;
     }
-
-    static int IC = 0;
-    static int DC = 0;
-    line = (char *)malloc(sizeof(char) * LINE_LEN);
-    /* Reading line by line of the file*/
-    while (fgets(line, LINE_LEN, fptr))
+    pass_return = first_pass(fptr);
+    if (!pass_return)
     {
-        /* FIRST PASS */
-
-        /* Is MACRO? */
-        /**
-         * TODO - Configure Macro checker
-         */
-        /* Is Data Holder? such as array or variable? */
-        /** 
-         * TODO - Configure array parser
-         */
-        /* .extern or .entry ? */
-        /**
-         * TODO - Configure .extern/.entry
-         */
-        
-        fprintf(stdout, "%s", line);
+        perror("First pass Failed!\nTerminating\n");
+        fclose(fptr);
+        return EXIT_FAILURE;
     }
 
-    /* printf("the size of word_s is: %ld bytes\n", sizeof(word_s));
-     *printf("the size of register_t is: %ld bytes\n", sizeof(register_t));
-     * printf("the size of test is: %ld bytes\n", sizeof(test)); */
-    
+    pass_return = second_pass(fptr);
+    if (!pass_return)
+    {
+        perror("Second pass Failed!\nTerminating\n");
+        fclose(fptr);
+        return EXIT_FAILURE;
+    }
+
     fclose(fptr);
     return 0;
 }

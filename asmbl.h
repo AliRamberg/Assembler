@@ -23,16 +23,6 @@ struct
     unsigned int unusd:4;   /* unused: initialized to 0 */
 } word_s;
 
-struct test
-{
-    unsigned int a;
-    unsigned int b;
-    unsigned int c;
-    unsigned int d;
-    unsigned int e;
-} test;
-
-
 typedef struct
 {
     char *name;
@@ -40,3 +30,37 @@ typedef struct
 } register_t;
 
 
+int 
+first_pass(FILE *fptr)
+{
+    char *line = (char *)malloc(sizeof(char) * LINE_LEN);
+
+    /* Reading line by line of the file*/
+    while (fgets(line, LINE_LEN, fptr))
+    {
+        /* FIRST PASS */
+
+        /* Is MACRO? */
+        /**
+         * TODO - Configure Macro checker
+         */
+        /* Is Data Holder? such as array or variable? */
+        /** 
+         * TODO - Configure array parser
+         */
+        /* .extern or .entry ? */
+        /**
+         * TODO - Configure .extern/.entry
+         */
+        
+        fprintf(stdout, "%s", line);
+
+    }
+    return EXIT_SUCCESS;
+}
+
+int
+second_pass(FILE *fptr)
+{
+    return EXIT_SUCCESS;
+}
