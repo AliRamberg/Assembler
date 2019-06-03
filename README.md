@@ -32,9 +32,9 @@ It supports only ascii characters and whole numbers, real numbers throws an erro
 ```
 +------------+------------+------------+---------------+-------+
 |       10-13|         6-9|         4-5|            2-3|    0-1|
-|	         |            |            |               |       |
+|            |            |            |               |       |
 |  Not Used  |   Opcode	  |   source   |  destination  | A.R.E |
-|            |		      |            |               |       |
+|            |            |            |               |       |
 +------------+------------+------------+---------------+-------+
 ```
 ###### Note
