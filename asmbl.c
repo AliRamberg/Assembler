@@ -32,7 +32,7 @@ main(int argc, char const *argv[])
         return EXIT_FAILURE;
     }
     pass_return = first_pass(fptr);
-    if (!pass_return)
+    if (pass_return)
     {
         perror("First pass Failed!\nTerminating\n");
         fclose(fptr);
@@ -40,7 +40,7 @@ main(int argc, char const *argv[])
     }
 
     pass_return = second_pass(fptr);
-    if (!pass_return)
+    if (pass_return)
     {
         perror("Second pass Failed!\nTerminating\n");
         fclose(fptr);
