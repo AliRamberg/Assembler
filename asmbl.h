@@ -2,17 +2,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #define LINE_LEN 128            /* Line length */
-#define MEM_SIZE 4096           /* Number of cells of memory, each 14 bits */\
-/* #define TXT_FILE "test.txt" */   /* File to read, assembly language */
+#define MEM_SIZE 4096           /* Number of cells of memory, each 14 bits */
+#define OPCODE_NUM 16
 enum {FALSE = 0, TRUE = 1};
-
-enum OPCODES_E 
-{
-    mov, cmp, add, sub, 
-    not, clr, lea, inc, 
-    dec, jmp, bne, red, 
-    prn, jsr, rts, stop
-};
 
 enum ARE_E
 {
@@ -20,6 +12,7 @@ enum ARE_E
     R = 1,
     E = 10
 };
+
 
 /**
  * word datatype
@@ -49,7 +42,7 @@ first_pass(FILE *fptr)
     char *line = (char *)malloc(sizeof(char) * LINE_LEN);
 
     /* Reading line by line of the file*/
-    while (fgets(line, LINE_LEN, fptr))
+    while (fgets(line, LINE_LEN, fptr) && line[0] != ';')
     {
         /* FIRST PASS */
 

@@ -4,7 +4,7 @@
 #include "asmbl.h"
 
 /* 
-static register_t r0, r1, r2, r3, r4, r5, r6, r7;
+static REGISTER r0, r1, r2, r3, r4, r5, r6, r7;
 static int IC = 0;
 static int DC = 0; 
 */
