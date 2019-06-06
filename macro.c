@@ -1,7 +1,8 @@
 #include "asmbl.h"
 
-int ismacro(char * line)
+int 
+ismacro(char * line)
 {
     
-    return TRUE;
+    return 1;
 }

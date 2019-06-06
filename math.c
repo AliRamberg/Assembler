@@ -2,17 +2,29 @@
 #include <stdio.h>
 #define _13BIT_MAX 0x1FFF /* Biggest number for integer in word_s */
 #define _13BIT_MIN 0xE000 /* Smallest number for integer in word_s */
+
+
+/**
+ * Validates a number is in boundaries of 13 bit words.
+ */
+int 
+is_valid(int num)
+{
+    return num <= _13BIT_MAX && num >= _13BIT_MIN;
+}
+
 /**
  * Convert binary string to its equivalence integer number.
  * support 13 bit binary
  */
-int conv_bd(int bin_num)
+int 
+conv_bd(int bin_num)
 {
     int rem, i = 0;
     int dec_num = 0;
-    if (bin_num > _13BIT_MAX)
+    if (!is_valid(bin_num))
     {
-        fprintf(stderr, "Number is too big, exceeds word boundaries");
+        fprintf(stderr, "Number exceeds word boundaries");
         return -1;
     }
     while (bin_num > 0)
@@ -28,17 +40,18 @@ int conv_bd(int bin_num)
  * Convert integer number to its equivalence binary *string*
  * support 13 bit binary
  */
-int conv_db(int dec_num)
+int 
+conv_db(int dec_num)
 {
     int bin_num = 0;
-    if (dec_num > _13BIT_MAX)
+    if (!is_valid(dec_num))
     {
-        fprintf(stderr, "Number is too big, exceeds word boundaries");
+        fprintf(stderr, "Number exceeds word boundaries");
         return -1;
     }
     while(dec_num > 0)
     {
-
+        break;
     }
     return dec_num;
 }
