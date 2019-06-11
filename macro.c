@@ -1,7 +1,7 @@
-#include "asmbl.h"
+
 
 int 
-ismacro(char * line)
+ismacro(char *line)
 {
     
     return 1;
