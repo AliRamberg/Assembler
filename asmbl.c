@@ -20,7 +20,6 @@ main(int argc, char const *argv[])
 {
     int pass_return;
     FILE *fptr;     /* pointer to file object */
-
     if (argc < 2)
     {
         fprintf(stderr, "No input files\nAssembling terminated\n");
