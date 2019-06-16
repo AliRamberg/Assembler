@@ -10,4 +10,4 @@ struct line_s
 };
 typedef struct line_s line_t;
 
-line_t *parse_line(line_t *);
+int parse_line(line_t *);

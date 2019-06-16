@@ -1,10 +1,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 #include "line.h"
-line_t 
-*parse_line(line_t *pLINE)
+
+int 
+parse_line(line_t *line)
 {
-    int i = 0;
-    return pLINE;
+    int args;
+    /* args = sscanf(line->line, "%s", line->first); */
+    /* printf("first = %s", line->first); */
+    return args;
 }

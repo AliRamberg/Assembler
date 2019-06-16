@@ -7,6 +7,9 @@
 #define LINE_LEN 128       /* Line length */
 #define MEM_SIZE 4096      /* Number of cells of memory, each 14 bits */
 #define OPCODE_NUM 16
+
+#define safe_free(p) {free(p); (p) = NULL;}
+
 enum BOOL {FALSE, TRUE};
 
 enum ARE_E

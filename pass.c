@@ -12,13 +12,19 @@ first_pass(FILE *fptr)
     char *line = (char *)malloc(sizeof(char) * LINE_LEN);
     line_t oLine;
     line_t *pLINE = &oLine;
+    int args;
     /* Reading line by line of the file, line is not a comment ';' */
     while (pLINE->line = fgets(line, LINE_LEN, fptr))
     {
         /* Continue on comments */
         if (line[0] == ';' || isspace(line[0]))
             continue;
-        parse_line(pLINE);
+        args = parse_line(pLINE);
+        if (!args)
+        {
+            /* bad line, could not parse any arguments */
+            continue;
+        }
         /* Is MACRO? */
         /**
          * TODO - Configure Macro checker
@@ -35,7 +41,7 @@ first_pass(FILE *fptr)
         fprintf(stdout, "%s", pLINE->line);
 
     }
-    free(line);
+    safe_free(line);
     return EXIT_SUCCESS;
 }
 
