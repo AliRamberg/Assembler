@@ -13,22 +13,19 @@ first_pass(FILE *fptr)
     line_t oLine;
     line_t *pLINE = &oLine;
     int args;
-    /* Reading line by line of the file, line is not a comment ';' */
+    /* Reading line by line of the fil\e, line is not a comment ';' */
     while (pLINE->line = fgets(line, LINE_LEN, fptr))
     {
         /* Continue on comments */
-        if (line[0] == ';' || isspace(line[0]))
+        if (line[0] == ';' || !isprint(line[0]))
             continue;
-        args = parse_line(pLINE);
-        if (!args)
-        {
-            /* bad line, could not parse any arguments */
-            continue;
-        }
+        /* args = parse_line(pLINE); */
         /* Is MACRO? */
-        /**
-         * TODO - Configure Macro checker
-         */
+        
+        if(pLINE->label = is_label(line))
+            fprintf(stdout, "THIS IS LABEL: '%s'\n", pLINE->label);
+        else
+            fprintf(stdout, "THIS IS NOT LABEL: '%s'\n", pLINE->line);
         /* Is Data Holder? such as array or variable? */
         /** 
          * TODO - Configure array parser
@@ -38,7 +35,7 @@ first_pass(FILE *fptr)
          * TODO - Configure .extern/.entry
          */
         
-        fprintf(stdout, "%s", pLINE->line);
+        /* fprintf(stdout, "%s", pLINE->line); */
 
     }
     safe_free(line);

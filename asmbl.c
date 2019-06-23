@@ -49,5 +49,6 @@ main(int argc, char const *argv[])
     }
 
     fclose(fptr);
+    safe_free(fptr);
     return EXIT_SUCCESS;
 }

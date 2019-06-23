@@ -4,7 +4,6 @@
 #include <stdio.h>
 #define _13BIT_MAX 0x1FFF  /* Biggest number for integer in word_t */
 #define _13BIT_MIN 0xE000  /* Smallest number for integer in word_t */
-#define LINE_LEN 128       /* Line length */
 #define MEM_SIZE 4096      /* Number of cells of memory, each 14 bits */
 #define OPCODE_NUM 16
 
