@@ -8,7 +8,7 @@
 int 
 parse_line(line_t *line)
 {
-    int args;
+    int args = 0;
     /* args = sscanf(line->line, "%s", line->first); */
     /* printf("first = %s", line->first); */
     return args;

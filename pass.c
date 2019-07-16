@@ -10,19 +10,19 @@ int
 first_pass(FILE *fptr)
 {
     char *line = (char *)malloc(sizeof(char) * LINE_LEN);
-    line_t oLine;
-    line_t *pLINE = &oLine;
-    int args;
+    line_t *pLINE = (line_t *)malloc(sizeof(line_t));
+    /* int args; */
     /* Reading line by line of the fil\e, line is not a comment ';' */
-    while (pLINE->line = fgets(line, LINE_LEN, fptr))
+    while ((pLINE->line = fgets(line, LINE_LEN, fptr)) != NULL)
     {
         /* Continue on comments */
         if (line[0] == ';' || !isprint(line[0]))
             continue;
         /* args = parse_line(pLINE); */
+
         /* Is MACRO? */
         
-        if(pLINE->label = is_label(line))
+        if((pLINE->label = is_label(line)) != NULL)
             fprintf(stdout, "THIS IS LABEL: '%s'\n", pLINE->label);
         else
             fprintf(stdout, "THIS IS NOT LABEL: '%s'\n", pLINE->line);
