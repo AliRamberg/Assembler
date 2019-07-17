@@ -18,37 +18,41 @@ static int DC = 0;
 int
 main(int argc, char const *argv[])
 {
-    int pass_return;
+    int pass_return, ret = EXIT_SUCCESS;
     FILE *fptr;     /* pointer to file object */
     if (argc < 2)
     {
-        fprintf(stderr, "No input files\nAssembling terminated\n");
+        fprintf(stderr, "No input files\nAssembling terminated.\n");
         return EXIT_FAILURE;
     }
 
-    fptr = fopen(argv[1], "r");
-    if(!fptr)
+    while(--argc)
     {
-        fprintf(stderr, "Failed to open file %s, %d\n", argv[1], errno);
-        return EXIT_FAILURE;
-    }
-    pass_return = first_pass(fptr);
-    if (pass_return)
-    {
-        perror("First pass Failed!\nTerminating\n");
+        fptr = fopen(argv[argc], "r");
+        if(!fptr)
+        {
+            fprintf(stderr, "Failed to open file %s, %d\n", argv[argc], errno);
+            ret = EXIT_FAILURE;
+            continue;
+        }
+        pass_return = first_pass(fptr);
+        if (pass_return)
+        {
+            perror("First pass Failed!\nTerminating\n");
+            fclose(fptr);
+            ret = EXIT_FAILURE;
+            continue;
+        }
+
+        pass_return = second_pass(fptr);
+        if (pass_return)
+        {
+            perror("Second pass Failed!\nTerminating\n");
+            fclose(fptr);
+            ret = EXIT_FAILURE;
+            continue;
+        }
         fclose(fptr);
-        return EXIT_FAILURE;
     }
-
-    pass_return = second_pass(fptr);
-    if (pass_return)
-    {
-        perror("Second pass Failed!\nTerminating\n");
-        fclose(fptr);
-        return EXIT_FAILURE;
-    }
-
-    fclose(fptr);
-    safe_free(fptr);
-    return EXIT_SUCCESS;
+    return ret;
 }

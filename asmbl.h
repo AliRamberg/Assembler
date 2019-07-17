@@ -1,7 +1,7 @@
 /* asmbl.h -- primary header for main */
-#pragma once
 #include <stdlib.h>
 #include <stdio.h>
+#define ASMBL_H
 #define _13BIT_MAX 0x1FFF  /* Biggest number for integer in word_t */
 #define _13BIT_MIN 0xE000  /* Smallest number for integer in word_t */
 #define MEM_SIZE 4096      /* Number of cells of memory, each 14 bits */
@@ -15,7 +15,7 @@ enum ARE_E
 {
     A = 0,
     R = 1,
-    E = 10
+    E = 2
 };
 
 

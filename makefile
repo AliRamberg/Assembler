@@ -20,14 +20,14 @@ macro.o: macro.c
 #math.o: math.c
 #		$(CC) -o $@ -c $^ $(LDFLAGS)
 
-opcode.o: opcode.c
-		$(CC) -o $@ -c $^ $(LDFLAGS)
+#opcode.o: opcode.c
+#		$(CC) -o $@ -c $^ $(LDFLAGS)
 
 line.o: line.c
 		$(CC) -o $@ -c $^ $(LDFLAGS)
 
 asmbl.o: asmbl.c
-		$(CC)  -o $@ -c $^ $(LDFLAGS)
+		$(CC) -o $@ -c $^ $(LDFLAGS)
 
 .PHONY: clean
 clean:
