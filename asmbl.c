@@ -36,18 +36,18 @@ main(int argc, char const *argv[])
             continue;
         }
         pass_return = first_pass(fptr);
-        if (pass_return)
+        if (pass_return && ret)
         {
-            perror("First pass Failed!\nTerminating\n");
+            fprintf(stderr, "First pass failed!\nTerminating... %d\n", errno);
             fclose(fptr);
             ret = EXIT_FAILURE;
             continue;
         }
 
         pass_return = second_pass(fptr);
-        if (pass_return)
+        if (pass_return && ret)
         {
-            perror("Second pass Failed!\nTerminating\n");
+            fprintf(stderr, "Second pass failed!\nTerminating... %d\n", errno);
             fclose(fptr);
             ret = EXIT_FAILURE;
             continue;
