@@ -12,10 +12,14 @@ typedef struct line_s
     char *fourth;
     char *fifth;
 } line_t;
-/* typedef struct line_s line_t; */
 
+
+/**
+ * TODO - Write API for below functions
+ */
 int parse_line(line_t *);
 char *is_label(char *);
+int skipable_line(char *);
 int is_macro(line_t *);
 
 #endif

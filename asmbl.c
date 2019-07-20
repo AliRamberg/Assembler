@@ -8,10 +8,10 @@
 /* 
 static REGISTER r0, r1, r2, r3, r4, r5, r6, r7;
 static int IC = 0;
-static int DC = 0; 
+static int DC = 0;
 */
 
-   
+
 /*
  * ─── START HERE ─────────────────────────────────────────────────────────────────
  */
@@ -26,6 +26,7 @@ main(int argc, char const *argv[])
         return EXIT_FAILURE;
     }
 
+    /* Converting each file in argv continue on failed parses */
     while(--argc)
     {
         fptr = fopen(argv[argc], "r");
@@ -38,7 +39,7 @@ main(int argc, char const *argv[])
         pass_return = first_pass(fptr);
         if (pass_return)
         {
-            perror("First pass Failed!\nTerminating\n");
+            fprintf(stderr, "First pass failed!\nTerminating, %d\n", errno);
             fclose(fptr);
             ret = EXIT_FAILURE;
             continue;
@@ -47,7 +48,7 @@ main(int argc, char const *argv[])
         pass_return = second_pass(fptr);
         if (pass_return)
         {
-            perror("Second pass Failed!\nTerminating\n");
+            fprintf(stderr, "Second pass failed!\nTerminating, %d\n", errno);
             fclose(fptr);
             ret = EXIT_FAILURE;
             continue;

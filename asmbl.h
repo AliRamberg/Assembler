@@ -9,6 +9,13 @@
 
 #define safe_free(p) {free(p); (p) = NULL;}
 
+#define mov 1
+#define cmp 2
+#define add 3
+#define sub 4
+
+#define IMMIDIATE 0
+
 enum BOOL {FALSE, TRUE};
 
 enum ARE_E
@@ -31,12 +38,19 @@ struct
     unsigned int opcd:4;    /* opcode */
     unsigned int unusd:4;   /* unused: initialized to 0 */
 } word_t;
+typedef struct word_t WORD_T;
 
 struct
 {
     char *name;
     unsigned int reg:14;
 } _register_t;
-
-typedef struct word_t WORD_T;
 typedef struct _register_t REGISTER;
+
+
+union 
+{
+    line_t *guidance;
+    line_t *command;
+    line_t *macro;
+} line_u_;
