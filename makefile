@@ -31,4 +31,4 @@ asmbl.o: asmbl.c
 
 .PHONY: clean
 clean:
-		rm -f $(obj) myprog
+		rm -f *.o myprog

@@ -1,18 +1,19 @@
 /* asmbl.h -- primary header for main */
+#ifndef ASMBL_H
+#define ASMBL_H
+
 #include <stdlib.h>
 #include <stdio.h>
-#define ASMBL_H
+#include "line.h"
 #define _13BIT_MAX 0x1FFF  /* Biggest number for integer in word_t */
 #define _13BIT_MIN 0xE000  /* Smallest number for integer in word_t */
 #define MEM_SIZE 4096      /* Number of cells of memory, each 14 bits */
 #define OPCODE_NUM 16
 
-#define safe_free(p) {free(p); (p) = NULL;}
-
-#define mov 1
-#define cmp 2
-#define add 3
-#define sub 4
+#define MOV 1
+#define CMP 2
+#define ADD 3
+#define SUB 4
 
 #define IMMIDIATE 0
 
@@ -54,3 +55,6 @@ union
     line_t *command;
     line_t *macro;
 } line_u_;
+
+
+#endif

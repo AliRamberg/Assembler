@@ -4,6 +4,7 @@
 #include "pass.h"
 #include "asmbl.h"
 #include "macro.h"
+#include "misc.h"
 #include "line.h"
 
 int
@@ -17,12 +18,11 @@ first_pass(FILE *fptr)
     {
         /* args = parse_line(pLINE); */
 
+        parse_line(pLINE);
         /* Is MACRO? */
-        
+
         if((pLINE->label) != NULL)
             fprintf(stdout, "THIS IS LABEL: '%s'\n", pLINE->label);
-        else
-            fprintf(stdout, "THIS IS NOT LABEL: '%5s'\n", pLINE->line);
         /* Is Data Holder? such as array or variable? */
         /**
          * TODO - Configure array parser
@@ -35,8 +35,8 @@ first_pass(FILE *fptr)
         /* fprintf(stdout, "%s", pLINE->line); */
 
     }
-    safe_free(line)
-    safe_free(pLINE)
+    SAFE_FREE(line)
+    LINE_FREE(pLINE);
 
     return EXIT_SUCCESS;
 }
