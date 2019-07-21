@@ -13,18 +13,18 @@ first_pass(FILE *fptr)
     line_t *pLINE = (line_t *)malloc(sizeof(line_t));
     /* int args; */
     /* Reading line by line of the file, and line is not whitespace or a comment */
-    while ((pLINE->line = fgets(line, LINE_LEN, fptr)) != NULL && (pLINE->line[0] != ';' || !isprint(line[0])))
+    while ((pLINE->line = fgets(line, LINE_LEN, fptr)) && !skipable_line(pLINE->line))
     {
         /* args = parse_line(pLINE); */
 
         /* Is MACRO? */
         
-        if((pLINE->label = is_label(line)) != NULL)
+        if((pLINE->label) != NULL)
             fprintf(stdout, "THIS IS LABEL: '%s'\n", pLINE->label);
         else
             fprintf(stdout, "THIS IS NOT LABEL: '%5s'\n", pLINE->line);
         /* Is Data Holder? such as array or variable? */
-        /** 
+        /**
          * TODO - Configure array parser
          */
         /* .extern or .entry ? */
@@ -35,7 +35,9 @@ first_pass(FILE *fptr)
         /* fprintf(stdout, "%s", pLINE->line); */
 
     }
-    safe_free(line);
+    safe_free(line)
+    safe_free(pLINE)
+
     return EXIT_SUCCESS;
 }
 

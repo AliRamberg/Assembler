@@ -9,6 +9,16 @@ int
 parse_line(line_t *line)
 {
     int args = 0;
+    char *label = (char *)malloc(sizeof(char)*LABEL_LEN);
+    if((label = is_label(line->line)))
+    {
+        line->label = label;
+    }
+    else
+    {
+        safe_free(label)
+        line->label = NULL;
+    }
     /* args = sscanf(line->line, "%s", line->first); */
     /* printf("first = %s", line->first); */
     return args;
@@ -35,9 +45,38 @@ is_macro(line_t *line)
 char *
 is_label(char *line)
 {
-    if(!isalpha(line[0]))
-        return NULL;
-    if(strstr(line, ":"))
+    char *ch = line;
+    while(isspace(*ch++));
+    while(isalpha(*ch++));
+    if(*ch == ':')
         return strtok(line, ":");
     return NULL;
+}
+
+/* Is the line completely blank? */
+int
+is_whitespace(char *line)
+{
+    char *ch = line;
+    while(*ch != '\0')
+    {
+        if(!isspace(*ch))
+            return 0;
+        ch++;
+    }
+    return 1;
+}
+
+/* Is the line a comment? */
+int
+is_comment(char ch)
+{
+    return ch == ';';
+}
+
+/* Is the line worth parsing at all? */
+int 
+skipable_line(char *line)
+{
+    return is_comment(*line) || is_whitespace(line);
 }
