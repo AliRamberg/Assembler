@@ -6,7 +6,7 @@
 #include "line.h"
 #include "asmbl.h"
 
-char *strsub(int, int, char *);
+char *strsub(char *, size_t, char *);
 
 int 
 parse_line(line_t *oline)
@@ -48,15 +48,24 @@ is_macro(line_t *oline)
 char *
 is_label(char *line)
 {
-    char *spc, *st, *ch;
-    ch = spc = line;
+    char *st, *ch;
+    ch  = line;
     while(isspace(*ch++));
-    st = strchr(spc, *ch);
-    while(isalpha(*ch++));
-    if(*ch == ':')
+    st = ch - 1;
+    if(isalpha(*st))
     {
-        printf("%c\n", *ch);
-        return strsub(spc-st, ch-st, spc);
+        while(isgraph(*ch) && *ch  != ':')
+            ch++;
+        /* Reached the end of the label title */
+        if(*ch == ':')
+        {
+            if(ch - st > LABEL_LEN)
+            {
+                fprintf(stderr, "Label %s is too long.\nMust not exceed LABEL_LEN    %d.\n", strsub(st, ch-st, line), LABEL_LEN);
+                return NULL;
+            }
+            return strsub(st, ch - st, line);
+        }
     }
     return NULL;
 }
@@ -91,21 +100,22 @@ skipable_line(char *line)
 
 /**
  * Allocates a new string which contains the characters
- * from index ipos up to len characters, adds the null terminator at the end of sub.
+ * from pointer of index pos up to len characters, 
+ * adds the null terminator at the end of sub.
  * Returns the new substring; on failure returns NULL.
  * NOTE: The function uses dynamically allocated memory,
  * needs to be free()'ed with FREE_SAFE or LINE_FREE()
  */
 char *
-strsub(int ipos, int len, char *str)
+strsub(char *pos, size_t len, char *str)
 {
     int c = 0;
-    char *sub = (char *)malloc(sizeof(char) * (len + 1)); /* 1 extra char for the null therminator. */
+    char *sub = (char *)malloc(sizeof(char) * len);
     if(!sub)
         return NULL;
     while(c < len)
     {
-        sub[c] = str[ipos + c];
+        sub[c] = *pos++;
         c++;
     }
     sub[c] = '\0';

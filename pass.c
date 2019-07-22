@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 #include "pass.h"
 #include "asmbl.h"
 #include "macro.h"
@@ -14,8 +15,14 @@ first_pass(FILE *fptr)
     line_t *pLINE = (line_t *)malloc(sizeof(line_t));
     /* int args; */
     /* Reading line by line of the file, and line is not whitespace or a comment */
-    while ((pLINE->line = fgets(line, LINE_LEN, fptr)) && !skipable_line(pLINE->line))
+    while ((pLINE->line = fgets(line, LINE_LEN + 1, fptr)) && !skipable_line(pLINE->line))
     {
+        /* Check if line is longer than LINE_LEN */
+        if(strlen(pLINE->line) > LINE_LEN)
+        {
+            fprintf(stderr, "Line Exceeds max line length %d.\n", LINE_LEN);
+            continue;
+        }
         /* args = parse_line(pLINE); */
 
         parse_line(pLINE);

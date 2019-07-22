@@ -1,5 +1,1 @@
-LABEL1: R2'
-mov r1, r2  a
-test not a label
-;dasdkjaskjhfka
-LABEL3:ASDKAJSD
+        label2_______:asdasd
