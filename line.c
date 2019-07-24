@@ -1,10 +1,9 @@
-#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdio.h>
 #include <assert.h> /* DEBUG */
 #include "line.h"
 #include "asmbl.h"
+#include "misc.h"
 
 char *strsub(char *, size_t, char *);
 
@@ -48,7 +47,7 @@ is_macro(line_t *oline)
 char *
 is_label(char *line)
 {
-    char *st, *ch;
+    char *st, *ch, *label;
     ch  = line;
     while(isspace(*ch++));
     st = ch - 1;
@@ -57,14 +56,24 @@ is_label(char *line)
         while(isgraph(*ch) && *ch  != ':')
             ch++;
         /* Reached the end of the label title */
-        if(*ch == ':')
+        if(*ch == ':' && *(ch + 1) == ' ')
         {
+            label = strsub(st, ch - st, line);
+            /* Label is too long */
             if(ch - st > LABEL_LEN)
             {
                 fprintf(stderr, "Label %s is too long.\nMust not exceed LABEL_LEN    %d.\n", strsub(st, ch-st, line), LABEL_LEN);
+                SAFE_FREE(label);
                 return NULL;
             }
-            return strsub(st, ch - st, line);
+            /* Label is a reserved word */
+            if(is_reserved(label))
+            {
+                fprintf(stderr, "Label name is a reserved word\n");
+                SAFE_FREE(label);
+                return NULL;
+            }
+            return label;
         }
     }
     return NULL;
@@ -74,12 +83,11 @@ is_label(char *line)
 int
 is_whitespace(char *line)
 {
-    char *ch = line;
-    while(*ch != '\0')
+    while(*line != EOF)
     {
-        if(!isspace(*ch))
+        if(!isspace(*line))
             return 0;
-        ch++;
+        line++;
     }
     return 1;
 }

@@ -1,10 +1,8 @@
-#include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include "pass.h"
 #include "asmbl.h"
-#include "macro.h"
 #include "misc.h"
 #include "line.h"
 

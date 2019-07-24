@@ -5,9 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "line.h"
-/**
- * TODO Change to 12Bit
- */
+
 #define _12BIT_MAX 0xFFF  /* Biggest number for integer in word_t */
 #define _12BIT_MIN 0xFFFFF001  /* Smallest number for integer in word_t */
 /********************************************************************/

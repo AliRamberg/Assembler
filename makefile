@@ -6,7 +6,7 @@ CC = gcc
 src = $(wildcard *.c)
 obj = $(src:.c=.o)
 
-LDFLAGS = -Wall -ansi -pedantic
+LDFLAGS = -g -Wall -ansi -pedantic
 
 myprog: $(obj)
 		$(CC) -o $@ $^ $(LDFLAGS)

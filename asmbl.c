@@ -3,7 +3,7 @@
 #include <errno.h>
 #include "asmbl.h"
 #include "pass.h"
-
+#include "misc.h"
 
 /* 
 static REGISTER r0, r1, r2, r3, r4, r5, r6, r7;
@@ -50,5 +50,11 @@ main(int argc, char const *argv[])
         }
         fclose(fptr);
     }
+    pass_return = insert_protected("ABC");
+    if(pass_return)
+        printf("%d - BAD\n", pass_return);
+    else
+        printf("%d - GOOD\n", pass_return);
+    printf("Protected element is %ld\n.", protected[0]);
     return EXIT_SUCCESS;
 }

@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "asmbl.h": "c",
+        "setjmp.h": "c",
+        "stdio.h": "c",
+        "pass.h": "c",
+        "misc.h": "c",
+        "math.h": "c",
+        "line.h": "c"
+    },
+    "objectscript.conn.active": false
+}
