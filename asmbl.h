@@ -5,18 +5,40 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "line.h"
-#define _13BIT_MAX 0x1FFF  /* Biggest number for integer in word_t */
-#define _13BIT_MIN 0xE000  /* Smallest number for integer in word_t */
+/**
+ * TODO Change to 12Bit
+ */
+#define _12BIT_MAX 0xFFF  /* Biggest number for integer in word_t */
+#define _12BIT_MIN 0xFFFFF001  /* Smallest number for integer in word_t */
+/********************************************************************/
+
 #define MEM_SIZE 4096      /* Number of cells of memory, each 14 bits */
 #define OPCODE_NUM 16
 
-#define MOV 1
-#define CMP 2
-#define ADD 3
-#define SUB 4
+/**
+ * Opcodes Instructions
+ */
+#define MOV 0
+#define CMP 1
+#define ADD 2
+#define SUB 3
+#define NOT 4
+#define CLR 5
+#define LEA 6
+#define INC 7
+#define DEC 8
+#define JMP 9
+#define BNE 10
+#define RED 11
+#define PRN 12
+#define JSR 13
+#define RTS 14
+#define STOP 15
+/**********************/
 
 #define IMMIDIATE 0
-
+#define NEGATIVE -
+#define POSITIVE +
 enum BOOL {FALSE, TRUE};
 
 enum ARE_E

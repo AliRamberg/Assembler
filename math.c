@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "misc.h"
 #include "asmbl.h"
 
 
@@ -9,7 +10,7 @@
 int 
 is_valid(int num)
 {
-    return num <= _13BIT_MAX && num >= _13BIT_MIN;
+    return num <= _12BIT_MAX && num >= _12BIT_MIN;
 }
 
 /**
