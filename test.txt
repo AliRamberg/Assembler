@@ -1,6 +1,3 @@
-        prn: asdasd
-
-
-                dd
-
-   label: 123
+mov r1,r2
+inc r2
+label: .data str "abc"

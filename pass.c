@@ -9,23 +9,27 @@
 int
 first_pass(FILE *fptr)
 {
+    int IC = 0; /* Instruction Counter */
+    /* 
+    int DC = 0; Data Counter 
+    */
     char *line = (char *)malloc(sizeof(char) * LINE_LEN);
     line_t *pLINE = (line_t *)malloc(sizeof(line_t));
     /* int args; */
     /* Reading line by line of the file, and line is not whitespace or a comment */
-    while ((pLINE->line = fgets(line, LINE_LEN + 1, fptr)) && !skipable_line(pLINE->line))
+    while ((pLINE->line = fgets(line, LINE_LEN + 2, fptr)) && !skipable_line(pLINE->line))
     {
         /* Check if line is longer than LINE_LEN */
         if(strlen(pLINE->line) > LINE_LEN)
         {
-            fprintf(stderr, "Line Exceeds max line length %d.\n", LINE_LEN);
+            /* fprintf(stderr, "Line Exceeds max line length %d.\n", LINE_LEN); */
+            ERROR_MSG("Line Exceeds max line length.\n")
             continue;
         }
         /* args = parse_line(pLINE); */
 
         parse_line(pLINE);
         /* Is MACRO? */
-
         if((pLINE->label) != NULL)
             fprintf(stdout, "THIS IS LABEL: '%s'\n", pLINE->label);
         /* Is Data Holder? such as array or variable? */
@@ -38,7 +42,7 @@ first_pass(FILE *fptr)
          */
         
         /* fprintf(stdout, "%s", pLINE->line); */
-
+        IC++;
     }
     SAFE_FREE(line)
     LINE_FREE(pLINE);

@@ -6,7 +6,7 @@
 #include "misc.h"
 #include "asmbl.h"
 
-unsigned long protected[INIT_PROTECTED_SIZE];
+extern unsigned long protected[INIT_PROTECTED_SIZE];
 
 /* Free the line object and its dynamically allocated elements */
 void
@@ -82,6 +82,7 @@ is_reserved(char *str)
     return 0;
 }
 
+/*
 int
 insert_protected(char *str)
 {
@@ -106,3 +107,4 @@ insert_protected(char *str)
 
     return 0;
 }
+*/
