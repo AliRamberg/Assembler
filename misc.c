@@ -6,8 +6,6 @@
 #include "misc.h"
 #include "asmbl.h"
 
-extern unsigned long protected[INIT_PROTECTED_SIZE];
-
 /* Free the line object and its dynamically allocated elements */
 void
 LINE_FREE(line_t *oLINE)

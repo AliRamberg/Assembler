@@ -9,6 +9,8 @@
 #define	IS_ASCII(c)	(((c) & ~0x7f) == 0)	/* If C is a 7 bit value.  */
 #define INIT_PROTECTED_SIZE 10
 
+extern unsigned long protected[INIT_PROTECTED_SIZE];
+
 /* Math functions */
 int is_valid(int);
 
