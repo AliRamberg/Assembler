@@ -43,7 +43,6 @@ conv_bd(int bin_num)
 int 
 conv_db(int dec_num)
 {
-    int bin_num = 0;
     if (!is_valid(dec_num))
     {
         fprintf(stderr, "Number exceeds word boundaries");

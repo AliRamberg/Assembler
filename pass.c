@@ -6,32 +6,39 @@
 #include "misc.h"
 #include "line.h"
 
+
+
 int
 first_pass(FILE *fptr)
 {
-    int IC = 0; /* Instruction Counter */
-    /* 
-    int DC = 0; Data Counter 
-    */
     char *line = (char *)malloc(sizeof(char) * LINE_LEN);
     line_t *pLINE = (line_t *)malloc(sizeof(line_t));
+
+    IC = 0;  /* Instruction Counter */
+    
     /* int args; */
-    /* Reading line by line of the file, and line is not whitespace or a comment */
-    while ((pLINE->line = fgets(line, LINE_LEN + 2, fptr)) && !skipable_line(pLINE->line))
+    /* Reading line by line of the file */
+    while (((pLINE->line = fgets(line, LINE_LEN + 2, fptr))))
     {
+        ++IC;
         /* Check if line is longer than LINE_LEN */
         if(strlen(pLINE->line) > LINE_LEN)
         {
-            /* fprintf(stderr, "Line Exceeds max line length %d.\n", LINE_LEN); */
-            ERROR_MSG("Line Exceeds max line length.\n")
+            ERROR_MSG("Line Exceeds max line length.")
             continue;
         }
-        /* args = parse_line(pLINE); */
 
-        parse_line(pLINE);
-        /* Is MACRO? */
-        if((pLINE->label) != NULL)
-            fprintf(stdout, "THIS IS LABEL: '%s'\n", pLINE->label);
+        /* line is a whitespace or a comment - CONTINUE */
+        if(skipable_line(pLINE->line))
+            continue;
+
+        /********************/
+        parse_line(pLINE);/**/
+        /********************/
+
+        /* if((pLINE->label) != NULL)
+            fprintf(stdout, "THIS IS LABEL: '%s'\n", pLINE->label); */
+        
         /* Is Data Holder? such as array or variable? */
         /**
          * TODO - Configure array parser
@@ -42,7 +49,6 @@ first_pass(FILE *fptr)
          */
         
         /* fprintf(stdout, "%s", pLINE->line); */
-        IC++;
     }
     SAFE_FREE(line)
     LINE_FREE(pLINE);

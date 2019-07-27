@@ -35,8 +35,8 @@
 /**********************/
 
 #define IMMIDIATE 0
-#define NEGATIVE -
-#define POSITIVE +
+#define NEGATIVE '-'
+#define POSITIVE '+'
 enum BOOL {FALSE, TRUE};
 
 enum ARE_E
@@ -69,12 +69,6 @@ struct
 typedef struct _register_t REGISTER;
 
 
-union 
-{
-    line_t *guidance;
-    line_t *command;
-    line_t *macro;
-} line_u_;
-
+int IC;  /* Instruction Counter */
 
 #endif

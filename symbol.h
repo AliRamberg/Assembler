@@ -7,18 +7,18 @@ typedef struct symbol_st
         struct macro_st
         {
             char *macro;
-        }macro_st;
+        } macro_st;
         struct directive_st
         {
             char *directive;
-        }directive_st;
+        } directive_st;
         struct instruction_st
         {
             char inst;
-        }instruction_st;
+        } instruction_st;
     } symbol_un;
-    char *label;
-};
+    char *line_t;
+}symbol_st;
 
 typedef union _symbol_un symbol_un;
 

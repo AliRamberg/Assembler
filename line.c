@@ -5,40 +5,70 @@
 #include "asmbl.h"
 #include "misc.h"
 
-char *strsub(char *, size_t, char *);
+char *strsub(char *, size_t , char *);
+char *is_label(char *);
+char *is_macro(line_t *);
 
 int 
-parse_line(line_t *oline)
+parse_line(line_t *pLINE)
 {
-    char *label = (char *)malloc(sizeof(char)*LABEL_LEN);
+    char *label, *macro;
     
     /***********************************************\
                         LABELS
     \***********************************************/
-    if((label = is_label(oline->line)))
-        oline->label = label;
+    if((label = is_label(pLINE->line)))
+        pLINE->label = label;
     else
-        oline->label = NULL;
+        pLINE->label = NULL;
     /************************************************/
-    /* ZERO_MEMORY(dupline, sizeof(dupline)); */
+
+    /* strtok label from line, thus taking only the substring */
+    if(pLINE->label)
+    {
+        strtok(pLINE->line, " ");
+        pLINE->line = strtok(NULL, "\0");
+    }
+    /************************************************/
+
+    /***********************************************\
+                        MACROS
+    \***********************************************/
+    if((macro = is_macro(pLINE)))
+        pLINE->macro = macro;
+    else
+        pLINE->macro = NULL;
+
+    if(pLINE->label && pLINE->macro)
+        ERROR_MSG("No label is allowed on a macro sentence")
+    /************************************************/
+
     /* args = sscanf(line->line, "%s", line->first); */
     /* printf("first = %s", line->first); */
-    return 0;
+    return EXIT_SUCCESS;
 }
 
-int 
-is_macro(line_t *oline)
+/* Extractes .define macro.  */
+char * 
+is_macro(line_t *pLINE)
 {
-    if(oline->label)
+    char *ch = pLINE->line;
+    char *name = (char *)malloc(sizeof(char)*MACRO_LEN);
+    char *data = (char *)malloc(sizeof(char)*LINE_LEN);
+    while(isspace(*ch++));
+    ch = strtok(ch-1, " ");
+    /* .define has been identified */
+    if(hash(ch) == HASH_DEFINE)
     {
-        /* check if macro on second word */
-    }
-    else
-    {
-        /* check if macro on first word */
+        name = strtok(NULL, "=");
+        printf("name = %s\n", name);
+        data = strtok(NULL, "\0");
+        printf("data = %s\n", data);
     }
     
-    return TRUE;
+    
+    /* printf("data = %s\n", data); */
+    return NULL;
 }
 
 /**
@@ -53,23 +83,25 @@ is_label(char *line)
     st = ch - 1;
     if(isalpha(*st))
     {
+        /* Iterate over the characters of the line until reaching the end of the label title */
         while(isgraph(*ch) && *ch  != ':')
             ch++;
         /* Reached the end of the label title */
         if(*ch == ':' && *(ch + 1) == ' ')
         {
             label = strsub(st, ch - st, line);
+
             /* Label is too long */
             if(ch - st > LABEL_LEN)
             {
-                fprintf(stderr, "Label %s is too long.\nMust not exceed LABEL_LEN    %d.\n", strsub(st, ch-st, line), LABEL_LEN);
+                ERROR_MSG("Label is too long.")
                 SAFE_FREE(label);
                 return NULL;
             }
             /* Label is a reserved word */
             if(is_reserved(label))
             {
-                fprintf(stderr, "Label name is a reserved word\n");
+                ERROR_MSG("Label name is a reserved word")
                 SAFE_FREE(label);
                 return NULL;
             }
@@ -83,27 +115,27 @@ is_label(char *line)
 int
 is_whitespace(char *line)
 {
-    while(*line != EOF)
+    while(*line != '\n')
     {
         if(!isspace(*line))
-            return 0;
+            return FALSE;
         line++;
     }
-    return 1;
+    return TRUE;
 }
 
 /* Is the line a comment? */
 int
-is_comment(char ch)
+is_comment(char *line)
 {
-    return ch == ';';
+    return (*line == ';');
 }
 
 /* Is the line worth parsing at all? */
 int 
 skipable_line(char *line)
 {
-    return is_comment(*line) || is_whitespace(line);
+    return (is_comment(line) || is_whitespace(line));
 }
 
 /**

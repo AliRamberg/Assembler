@@ -11,11 +11,16 @@ void
 LINE_FREE(line_t *oLINE)
 {
     if(oLINE->label)
-        SAFE_FREE(oLINE->label);
-    SAFE_FREE(oLINE);
+        SAFE_FREE(oLINE->label)
+    if(oLINE->macro)
+        SAFE_FREE(oLINE->macro)
+    SAFE_FREE(oLINE)
 }
 
-/* Check if str is a legal number. Accepts '+' and '-' signs */
+/**
+ * Check if str is a legal number. Accepts '+' and '-' signs
+ * returns _12BIT_MIN  on illegal string.
+ */
 int
 is_num(char *str)
 {
@@ -27,10 +32,10 @@ is_num(char *str)
         return _12BIT_MIN;
     switch (sign)
     {
-    case '-':
+    case NEGATIVE:
         num = atoi(++str) * -1;
         break;
-    case '+':
+    case POSITIVE:
         num = atoi(++str);
         break;
     default:
@@ -61,20 +66,16 @@ int
 is_reserved(char *str)
 {
     int i;
-    unsigned long reserved_opcodes[OPCODE_NUM] = 
+    char *reserved_opcodes[OPCODE_NUM] = 
     {
-        hash("mov"), hash("cmp"),
-        hash("add"), hash("sub"),
-        hash("not"), hash("clr"),
-        hash("lea"), hash("inc"),
-        hash("dec"), hash("jmp"),
-        hash("bne"), hash("red"),
-        hash("prn"), hash("jst"),
-        hash("rts"), hash("stop")
+        "mov", "cmp", "add", "sub",
+        "not", "clr", "lea", "inc",
+        "dec", "jmp", "bne", "red",
+        "prn", "jst", "rts", "stop"
     };
     for(i = 0; i < OPCODE_NUM; i++)
     {
-        if(hash(str) == reserved_opcodes[i])
+        if(hash(str) == hash(reserved_opcodes[i]))
             return 1;
     }
     return 0;

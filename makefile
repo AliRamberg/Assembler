@@ -17,8 +17,14 @@ pass.o: pass.c
 macro.o: macro.c
 		$(CC) -o $@ -c $^ $(LDFLAGS)
 
-#math.o: math.c
-#		$(CC) -o $@ -c $^ $(LDFLAGS)
+misc.o: misc.c
+		$(CC) -o $@ -c $^ $(LDFLAGS)
+
+hash.o: hash.c
+		$(CC) -o $@ -c $^ $(LDFLAGS)
+
+math.o: math.c
+		$(CC) -o $@ -c $^ $(LDFLAGS)
 
 #opcode.o: opcode.c
 #		$(CC) -o $@ -c $^ $(LDFLAGS)

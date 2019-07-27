@@ -1,10 +1,11 @@
 #include "misc.h"
+
 /**
  * Fast hashing algorithm used in Berkeley DB
  * http://www.cse.yorku.ca/~oz/hash.html
  */
 unsigned long
-hash(unsigned char *str)
+hash(char *str)
 {
     unsigned long hash = 0;
     int c;
@@ -21,5 +22,5 @@ hash(unsigned char *str)
 int 
 strcmp_hash(char *str1, char *str2)
 {
-    return hash((unsigned char *)str1) == hash((unsigned char *)str1);
+    return hash(str1) == hash(str1);
 }
