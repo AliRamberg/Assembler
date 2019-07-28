@@ -6,7 +6,9 @@
         "pass.h": "c",
         "misc.h": "c",
         "math.h": "c",
-        "line.h": "c"
+        "line.h": "c",
+        "stdlib.h": "c",
+        "typeinfo": "c"
     },
     "objectscript.conn.active": false
 }

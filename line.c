@@ -4,15 +4,16 @@
 #include "line.h"
 #include "asmbl.h"
 #include "misc.h"
+#include "symbol.h"
 
 char *strsub(char *, size_t , char *);
 char *is_label(char *);
-char *is_macro(line_t *);
+int is_macro(line_t *);
 
 int 
 parse_line(line_t *pLINE)
 {
-    char *label, *macro;
+    char *label;
     
     /***********************************************\
                         LABELS
@@ -34,41 +35,68 @@ parse_line(line_t *pLINE)
     /***********************************************\
                         MACROS
     \***********************************************/
-    if((macro = is_macro(pLINE)))
-        pLINE->macro = macro;
-    else
-        pLINE->macro = NULL;
-
-    if(pLINE->label && pLINE->macro)
-        ERROR_MSG("No label is allowed on a macro sentence")
+    if(is_macro(pLINE))
+    {
+        if(pLINE->label)
+        {
+            ERROR_MSG("No label is allowed on a macro sentence\nAborting")
+            return EXIT_FAILURE;
+        }
+        return PARSED_MACRO;
+    }
     /************************************************/
 
-    /* args = sscanf(line->line, "%s", line->first); */
-    /* printf("first = %s", line->first); */
+    
     return EXIT_SUCCESS;
 }
 
-/* Extractes .define macro.  */
-char * 
+/**
+ * Extractes .define macro to its name and data.
+ * Constructs a new symbol_t struct
+ * returns TRUE on success or FALSE on failure.
+ */
+int 
 is_macro(line_t *pLINE)
 {
     char *ch = pLINE->line;
-    char *name = (char *)malloc(sizeof(char)*MACRO_LEN);
-    char *data = (char *)malloc(sizeof(char)*LINE_LEN);
+    char *name, *data;
+    symbol_t *macro;
+    struct macro_st *mct;
+
+    /* trim whitespaces from start */
     while(isspace(*ch++));
+
+    /* Extracte .define if exists */
     ch = strtok(ch-1, " ");
-    /* .define has been identified */
-    if(hash(ch) == HASH_DEFINE)
+    if(strcmp_hash(ch, ".define"))
     {
         name = strtok(NULL, "=");
-        printf("name = %s\n", name);
+        macro = (symbol_t *)malloc(sizeof(symbol_t));
+        if(trim_white(name))
+        {
+            mct = (struct macro_st *)malloc(sizeof(struct macro_st));
+            macro->symbol_un->macro_st = mct;
+            macro->symbol_un->macro_st->name = name;
+        }
+        else
+        {
+            ERROR_MSG("Error Extracting macro name\nAborting...")
+            SAFE_FREE(macro)
+            return FALSE;
+        }
         data = strtok(NULL, "\0");
-        printf("data = %s\n", data);
+        if(trim_white(data))
+            macro->symbol_un->macro_st->data = data;
+        else
+        {
+            ERROR_MSG("Error extracting macro data\nAborting...")
+            SAFE_FREE(macro)
+            return FALSE;
+        }
+        macro->line_t = pLINE;
+        return TRUE;
     }
-    
-    
-    /* printf("data = %s\n", data); */
-    return NULL;
+    return FALSE;
 }
 
 /**
@@ -115,13 +143,10 @@ is_label(char *line)
 int
 is_whitespace(char *line)
 {
-    while(*line != '\n')
-    {
-        if(!isspace(*line))
-            return FALSE;
-        line++;
-    }
-    return TRUE;
+    while(!isspace(*line++));
+    if(*line == EOF)
+        return TRUE;
+    return FALSE;
 }
 
 /* Is the line a comment? */

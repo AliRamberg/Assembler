@@ -2,6 +2,6 @@
 
 struct symbol_nd
 {
-    symbol_st *curr;
-    symbol_st *next;
+    symbol_t *curr;
+    symbol_t *next;
 };

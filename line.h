@@ -5,13 +5,10 @@
 #define LABEL_LEN 31      /* Label maximum length */
 #define MACRO_LEN 20      /* macro maximum length - length of ".define" */
 
-#define HASH_DEFINE hash(".define")
-
-typedef struct line_s
+typedef struct line_st
 {
     char *line;
     char *label;
-    char *macro;
 } line_t;
 
 enum DIRECTIVE 
@@ -20,6 +17,13 @@ enum DIRECTIVE
     DIRECTIVE_STRING, 
     DIRECTIVE_ENTRY, 
     DIRECTIVE_EXTERN
+};
+
+enum PARSE
+{
+    PARSED_MACRO,
+    PARSED_DIRECTIVE,
+    PARSED_INSTRUCTION
 };
 
 /**

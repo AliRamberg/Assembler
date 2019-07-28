@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+
 #include "line.h"
 #include "misc.h"
 #include "asmbl.h"
@@ -12,37 +13,20 @@ LINE_FREE(line_t *oLINE)
 {
     if(oLINE->label)
         SAFE_FREE(oLINE->label)
-    if(oLINE->macro)
-        SAFE_FREE(oLINE->macro)
     SAFE_FREE(oLINE)
 }
 
 /**
  * Check if str is a legal number. Accepts '+' and '-' signs
- * returns _12BIT_MIN  on illegal string.
+ * returns _12BIT_MIN on illegal string.
  */
 int
 is_num(char *str)
 {
-    char sign = str[0];
-    int num, i, size = strlen(str);
-    for(i = 1; i < size && isdigit(str[i]); i++);
-    /* The string contain a non-digit character thus it is not a number */
-    if(i < size)
-        return _12BIT_MIN;
-    switch (sign)
-    {
-    case NEGATIVE:
-        num = atoi(++str) * -1;
-        break;
-    case POSITIVE:
-        num = atoi(++str);
-        break;
-    default:
-        num = atoi(++str);
-        break;
-    }
-    if(is_valid(num))
+    char *ch;
+    int num = (int) strtol(str, &ch,DECIMAL_BACE);
+    
+    if((*ch == '\0') && is_valid(num))
         return num;
     return _12BIT_MIN;
 }
@@ -75,10 +59,27 @@ is_reserved(char *str)
     };
     for(i = 0; i < OPCODE_NUM; i++)
     {
-        if(hash(str) == hash(reserved_opcodes[i]))
+        if(strcmp_hash(str, reserved_opcodes[i]))
             return 1;
     }
     return 0;
+}
+
+/* Trim whitespaces from end of string */
+char *
+trim_white(char *str)
+{
+    char *pos;
+    int len = strlen(str);
+    if(len == 0)
+        return str;
+    pos = str + len - 1;
+    while(pos >= str && isspace(*pos))
+    {
+        *pos = '\0';
+        pos--;
+    }
+    return str;
 }
 
 /*
