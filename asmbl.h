@@ -7,7 +7,7 @@
 #include "line.h"
 
 #define _12BIT_MAX 0xFFF  /* Biggest number for integer in word_t */
-#define _12BIT_MIN 0xFFFFF001  /* Smallest number for integer in word_t */
+#define _12BIT_MIN -0xFFF  /* Smallest number for integer in word_t */
 /********************************************************************/
 
 #define MEM_SIZE 4096      /* Number of cells of memory, each 14 bits */

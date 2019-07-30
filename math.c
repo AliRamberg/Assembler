@@ -8,7 +8,7 @@
  * Validates a number is in boundaries of 13 bit words.
  */
 int 
-is_valid(int num)
+is_valid(long num)
 {
     return num <= _12BIT_MAX && num >= _12BIT_MIN;
 }

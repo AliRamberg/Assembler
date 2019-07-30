@@ -4,7 +4,7 @@
 #include "line.h"
 #include "asmbl.h"
 #include "misc.h"
-#include "symbol.h"
+#include "symbols.h"
 
 char *strsub(char *, size_t , char *);
 char *is_label(char *);
@@ -47,7 +47,7 @@ parse_line(line_t *pLINE)
     /************************************************/
 
     
-    return EXIT_SUCCESS;
+    return EXIT_FAILURE;
 }
 
 /**
@@ -59,9 +59,8 @@ int
 is_macro(line_t *pLINE)
 {
     char *ch = pLINE->line;
-    char *name, *data;
-    symbol_t *macro;
-    struct macro_st *mct;
+    char *name, *data_s;
+    int data;
 
     /* trim whitespaces from start */
     while(isspace(*ch++));
@@ -70,30 +69,38 @@ is_macro(line_t *pLINE)
     ch = strtok(ch-1, " ");
     if(strcmp_hash(ch, ".define"))
     {
+        symbol_t *macro = init_macro();
         name = strtok(NULL, "=");
-        macro = (symbol_t *)malloc(sizeof(symbol_t));
-        if(trim_white(name))
+        if (!macro)
         {
-            mct = (struct macro_st *)malloc(sizeof(struct macro_st));
-            macro->symbol_un->macro_st = mct;
-            macro->symbol_un->macro_st->name = name;
+            ERROR_MSG("Failed to allocate memory for macro_t\nAborting...")
+            return FALSE;
         }
+        
+        /* Extracting the name of the macro */
+        if((name = clear_str(name)) != NULL)
+            macro->symbol->macro->name = name;
         else
         {
             ERROR_MSG("Error Extracting macro name\nAborting...")
-            SAFE_FREE(macro)
+            destroy_macro(macro);
             return FALSE;
         }
-        data = strtok(NULL, "\0");
-        if(trim_white(data))
-            macro->symbol_un->macro_st->data = data;
+
+        /* Extracting the data of the macro */
+        data_s = clear_str(strtok(NULL, "\0"));
+        data = is_num(data_s);
+        if(data != _12BIT_MIN)
+            macro->symbol->macro->data = data;
         else
         {
             ERROR_MSG("Error extracting macro data\nAborting...")
-            SAFE_FREE(macro)
+            destroy_macro(macro);
             return FALSE;
         }
-        macro->line_t = pLINE;
+
+        /* Pointing the line object to the macro object */
+        pLINE->parsed = macro;
         return TRUE;
     }
     return FALSE;
@@ -143,10 +150,12 @@ is_label(char *line)
 int
 is_whitespace(char *line)
 {
-    while(!isspace(*line++));
-    if(*line == EOF)
-        return TRUE;
-    return FALSE;
+    while(*line != '\0')
+    {
+        if(!isspace(*line++))
+            return FALSE;
+    }
+    return TRUE;
 }
 
 /* Is the line a comment? */

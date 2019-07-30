@@ -12,7 +12,7 @@ enum SYMBOL
 typedef struct macro_st
 {
     char *name;
-    char *data;
+    int data;
 } macro_t;
 
 typedef struct directive_st

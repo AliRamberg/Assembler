@@ -25,6 +25,7 @@ main(int argc, char const *argv[])
 
     while(--argc)
     {
+        fprintf(stdout, "Assembling file %s...\n", argv[argc]);
         fptr = fopen(argv[argc], "r");
         if(!fptr)
         {
@@ -34,18 +35,19 @@ main(int argc, char const *argv[])
         pass_return = first_pass(fptr);
         if (pass_return)
         {
-            fprintf(stderr, "First pass failed!\nTerminating... %d\n", errno);
+            fprintf(stderr, "First pass failed! (%s)\nTerminating... %d\n",argv[argc], 1);
             fclose(fptr);
             continue;
         }
         pass_return = second_pass(fptr);
         if (pass_return)
         {
-            fprintf(stderr, "Second pass failed!\nTerminating... %d\n", errno);
+            fprintf(stderr, "Second pass failed! (%s)\nTerminating... %d\n",argv[argc], 1);
             fclose(fptr);
             continue;
         }
         fclose(fptr);
+        puts("\n");
     }
     /* pass_return = insert_protected("ABC");
     if(pass_return)

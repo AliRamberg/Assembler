@@ -8,7 +8,8 @@
         "math.h": "c",
         "line.h": "c",
         "stdlib.h": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "symbol.h": "c"
     },
     "objectscript.conn.active": false
 }

@@ -6,6 +6,7 @@
 #include "line.h"
 #include "misc.h"
 #include "asmbl.h"
+#include "symbols.h"
 
 /* Free the line object and its dynamically allocated elements */
 void
@@ -13,6 +14,23 @@ LINE_FREE(line_t *oLINE)
 {
     if(oLINE->label)
         SAFE_FREE(oLINE->label)
+    if(oLINE->parsed)
+    {
+        switch (oLINE->parsed->type)
+        {
+        case SYMBOL_MACRO:
+            /* freeing macro */
+            destroy_macro(oLINE->parsed);
+            break;
+        
+        default:
+            /* freeing symbol union */
+            SAFE_FREE(oLINE->parsed->symbol)
+            break;
+        }
+    }
+    if(oLINE->line)
+        SAFE_FREE(oLINE->line)
     SAFE_FREE(oLINE)
 }
 
@@ -81,6 +99,17 @@ trim_white(char *str)
     }
     return str;
 }
+
+/* Trim whitespaces from start and end of string */
+char *
+clear_str(char *str)
+{   
+    char *ch = str;
+    while(isspace(*ch++));
+    str = trim_white(--ch);
+    return str;
+}
+
 
 /*
 int

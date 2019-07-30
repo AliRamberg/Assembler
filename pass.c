@@ -13,7 +13,7 @@ first_pass(FILE *fptr)
 {
     char *line = (char *)malloc(sizeof(char) * LINE_LEN);
     line_t *pLINE = (line_t *)malloc(sizeof(line_t));
-
+    int parse;
     IC = 0;  /* Instruction Counter */
     
     /* int args; */
@@ -25,17 +25,18 @@ first_pass(FILE *fptr)
         if(strlen(pLINE->line) > LINE_LEN)
         {
             ERROR_MSG("Line Exceeds max line length.")
-            continue;
+            return EXCEEDS_MAX_LENGTH;
         }
 
         /* line is a whitespace or a comment - CONTINUE */
         if(skipable_line(pLINE->line))
             continue;
-
-        /********************/
-        parse_line(pLINE);/**/
-        /********************/
-
+        /******************** PARSING LINE ********************/
+        parse = parse_line(pLINE);                          /**/
+        if(parse)                                           /**/
+            return PARSING_FAILURE;                         /**/
+        /******************************************************/
+        
         /* if((pLINE->label) != NULL)
             fprintf(stdout, "THIS IS LABEL: '%s'\n", pLINE->label); */
         
@@ -50,7 +51,6 @@ first_pass(FILE *fptr)
         
         /* fprintf(stdout, "%s", pLINE->line); */
     }
-    SAFE_FREE(line)
     LINE_FREE(pLINE);
 
     return EXIT_SUCCESS;

@@ -26,8 +26,8 @@ hash.o: hash.c
 math.o: math.c
 		$(CC) -o $@ -c $^ $(LDFLAGS)
 
-#opcode.o: opcode.c
-#		$(CC) -o $@ -c $^ $(LDFLAGS)
+symbols.o: symbols.c
+		$(CC) -o $@ -c $^ $(LDFLAGS)
 
 line.o: line.c
 		$(CC) -o $@ -c $^ $(LDFLAGS)
