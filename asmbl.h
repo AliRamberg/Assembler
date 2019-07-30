@@ -9,6 +9,10 @@
 #define _12BIT_MAX 0xFFF  /* Biggest number for integer in word_t */
 #define _12BIT_MIN -0xFFF  /* Smallest number for integer in word_t */
 /********************************************************************/
+/* Error Codes */
+#define NO_FILE 127
+#define EXCEEDS_MAX_LENGTH 2
+#define PARSING_FAILURE 3
 
 #define MEM_SIZE 4096      /* Number of cells of memory, each 14 bits */
 #define OPCODE_NUM 16

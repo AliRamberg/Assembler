@@ -16,9 +16,10 @@ first_pass(FILE *fptr)
     int parse;
     IC = 0;  /* Instruction Counter */
     
-    /* int args; */
+    static symbol_node list;
+
     /* Reading line by line of the file */
-    while (((pLINE->line = fgets(line, LINE_LEN + 2, fptr))))
+    while ((pLINE->line = fgets(line, LINE_LEN + 2, fptr)) != NULL)
     {
         ++IC;
         /* Check if line is longer than LINE_LEN */
@@ -36,29 +37,16 @@ first_pass(FILE *fptr)
         if(parse)                                           /**/
             return PARSING_FAILURE;                         /**/
         /******************************************************/
-        
-        /* if((pLINE->label) != NULL)
-            fprintf(stdout, "THIS IS LABEL: '%s'\n", pLINE->label); */
-        
-        /* Is Data Holder? such as array or variable? */
-        /**
-         * TODO - Configure array parser
-         */
-        /* .extern or .entry ? */
-        /**
-         * TODO - Configure .extern/.entry
-         */
-        
-        /* fprintf(stdout, "%s", pLINE->line); */
+
     }
     LINE_FREE(pLINE);
-
-    return EXIT_SUCCESS;
+    destroy_list(list.next);
+    return 0;
 }
 
 
 int
 second_pass(FILE *fptr)
 {
-    return EXIT_SUCCESS;
+    return 0;
 }

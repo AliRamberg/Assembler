@@ -40,14 +40,14 @@ parse_line(line_t *pLINE)
         if(pLINE->label)
         {
             ERROR_MSG("No label is allowed on a macro sentence\nAborting")
-            return EXIT_FAILURE;
+            return PARSED_FAILURE;
         }
         return PARSED_MACRO;
     }
     /************************************************/
 
     
-    return EXIT_FAILURE;
+    return PARSED_FAILURE;
 }
 
 /**
@@ -69,7 +69,7 @@ is_macro(line_t *pLINE)
     ch = strtok(ch-1, " ");
     if(strcmp_hash(ch, ".define"))
     {
-        symbol_t *macro = init_macro();
+        symbol_t *macro = init_symbol(SYMBOL_MACRO);
         name = strtok(NULL, "=");
         if (!macro)
         {
