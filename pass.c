@@ -14,9 +14,14 @@ first_pass(FILE *fptr)
     char *line = (char *)malloc(sizeof(char) * LINE_LEN);
     line_t *pLINE = (line_t *)malloc(sizeof(line_t));
     int parse;
+
+    symbol_node list;
+    list.data = NULL;
+    list.next = NULL;
+    list.type = 0;
+
     IC = 0;  /* Instruction Counter */
     
-    static symbol_node list;
 
     /* Reading line by line of the file */
     while ((pLINE->line = fgets(line, LINE_LEN + 2, fptr)) != NULL)
@@ -40,7 +45,8 @@ first_pass(FILE *fptr)
 
     }
     LINE_FREE(pLINE);
-    destroy_list(list.next);
+    if(list.next)
+        destroy_list(list.next);
     return 0;
 }
 
@@ -48,5 +54,6 @@ first_pass(FILE *fptr)
 int
 second_pass(FILE *fptr)
 {
+    IC = 0;
     return 0;
 }
