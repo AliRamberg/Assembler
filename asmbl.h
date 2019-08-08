@@ -16,6 +16,7 @@
 
 #define MEM_SIZE 4096      /* Number of cells of memory, each 14 bits */
 #define OPCODE_NUM 16
+#define REGISTER_NUM 8
 
 /**
  * Opcodes Instructions
@@ -73,6 +74,8 @@ struct
 typedef struct _register_t REGISTER;
 
 
+int line_num; /* current line number */
 int IC;  /* Instruction Counter */
+int DC; /* Data Conter */
 
 #endif

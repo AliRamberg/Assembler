@@ -14,23 +14,11 @@ LINE_FREE(line_t *oLINE)
 {
     if(oLINE->label)
         SAFE_FREE(oLINE->label)
-    if(oLINE->parsed)
-    {
-        switch (oLINE->parsed->type)
-        {
-        case SYMBOL_MACRO:
-            /* freeing macro */
-            destroy_macro(oLINE->parsed);
-            break;
-        
-        default:
-            /* freeing symbol union */
-            SAFE_FREE(oLINE->parsed->symbol)
-            break;
-        }
-    }
-    if(oLINE->line)
+    if(oLINE->parsed->type)
+        free_symbol(oLINE->parsed);
+    /* if(oLINE->line)
         SAFE_FREE(oLINE->line)
+    */
     SAFE_FREE(oLINE)
 }
 
@@ -75,10 +63,23 @@ is_reserved(char *str)
         "dec", "jmp", "bne", "red",
         "prn", "jst", "rts", "stop"
     };
-    for(i = 0; i < OPCODE_NUM; i++)
+    char *reserved_registers[REGISTER_NUM] = 
     {
-        if(strcmp_hash(str, reserved_opcodes[i]))
-            return 1;
+        "r0", "r1", "r2", "r3",
+        "r4", "r5", "r6", "r7" 
+    };
+    for(i = 0; i < OPCODE_NUM + REGISTER_NUM; i++)
+    {
+        if (i < OPCODE_NUM)
+        {
+            if(strcmp_hash(str, reserved_opcodes[i]))
+                return 1;
+        }
+        else
+        {
+            if(strcmp_hash(str, reserved_registers[i]))
+                return 1;
+        }
     }
     return 0;
 }

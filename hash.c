@@ -22,5 +22,5 @@ hash(char *str)
 int 
 strcmp_hash(char *str1, char *str2)
 {
-    return hash(str1) == hash(str1);
+    return hash(str1) == hash(str2);
 }

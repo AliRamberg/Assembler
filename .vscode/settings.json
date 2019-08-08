@@ -9,7 +9,8 @@
         "line.h": "c",
         "stdlib.h": "c",
         "typeinfo": "c",
-        "symbol.h": "c"
+        "symbol.h": "c",
+        "type_traits": "c"
     },
     "objectscript.conn.active": false
 }

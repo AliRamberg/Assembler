@@ -25,21 +25,23 @@ main(int argc, char const *argv[])
 
     while(--argc)
     {
+        symbol_node *list = NULL;
         fprintf(stdout, "Assembling file %s...\n", argv[argc]);
+
         fptr = fopen(argv[argc], "r");
         if(!fptr)
         {
             fprintf(stderr, "Failed to open file %s, %d\n", argv[argc], errno);
             continue;
         }
-        pass_return = first_pass(fptr);
+        pass_return = first_pass(fptr, &list);
         if (pass_return)
         {
-            fprintf(stderr, "First pass failed! (%s)\nTerminating... %d\n",argv[argc], 1);
+            fprintf(stderr, "First pass failed! (%s)\nTerminating... %d\n\n",argv[argc], 1);
             fclose(fptr);
             continue;
         }
-        pass_return = second_pass(fptr);
+        pass_return = second_pass(fptr, &list);
         if (pass_return)
         {
             fprintf(stderr, "Second pass failed! (%s)\nTerminating... %d\n",argv[argc], 1);

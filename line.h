@@ -11,6 +11,7 @@ typedef struct line_st
 {
     char *line;
     char *label;
+    int len; /* number of words required */
     symbol_t *parsed;
 } line_t;
 
@@ -25,10 +26,13 @@ enum DIRECTIVE
 /* Three results that are available to parse_line() */
 enum PARSE
 {
-    PARSED_MACRO,
-    PARSED_DIRECTIVE,
-    PARSED_INSTRUCTION,
-    PARSED_FAILURE
+    NOT_PARSED = 0,
+    PARSED_MACRO = 1,
+    PARSED_DIRECTIVE = 2,
+    PARSED_INSTRUCTION = 4,
+    PARSED_LABEL = 8,
+    PARSED_FAILURE = -1,
+    PARSED_SUCCESS = 0
 };
 
 /**

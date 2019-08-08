@@ -1,9 +1,11 @@
 #include <stdlib.h>
+#include <string.h>
 #include "misc.h"
 #include "symbols.h"
 
-
 symbol_t *init_macro();
+symbol_t *init_data();
+symbol_t *init_code();
 
 symbol_t *
 init_symbol(enum SYMBOL type)
@@ -17,7 +19,12 @@ init_symbol(enum SYMBOL type)
             return sym;
         break;
     case SYMBOL_DATA:
-        sym = NULL;
+        sym = init_data();
+        if(sym)
+            return sym;
+        break;
+    case SYMBOL_CODE:
+        sym = init_code();
         if(sym)
             return sym;
         break;
@@ -27,94 +34,146 @@ init_symbol(enum SYMBOL type)
     return NULL;
 }
 
+void
+free_symbol(symbol_t *sym)
+{
+    if(!sym)
+        return;
+    switch (sym->type)
+    {
+    case SYMBOL_MACRO:
+        SAFE_FREE(sym->symbol->macro->name)
+        SAFE_FREE(sym->symbol->macro)
+        SAFE_FREE(sym->symbol)
+        SAFE_FREE(sym)
+        return;
+    case SYMBOL_DATA:
+        SAFE_FREE(sym->symbol->directive)
+        SAFE_FREE(sym->symbol)
+        SAFE_FREE(sym)
+        return;
+    case SYMBOL_CODE:
+        /* code */
+        return;
+    default:
+        return;
+    }
+}
 
 
-/**
- * Initialize symbol struct for the macro lines.
- */
+/* Initialize symbol struct for the macro lines. */
 symbol_t *
 init_macro()
 {
-    symbol_t *macro_union = (symbol_t *)malloc(sizeof(symbol_t));
+    symbol_t *macro_symbol = (symbol_t *)malloc(sizeof(symbol_t));
     union symbol_un *symbol = (union symbol_un *)malloc(sizeof(union symbol_un));
     macro_t *macro = (macro_t *)malloc(sizeof(macro_t));
+    char *name = (char *)malloc(sizeof(char)*MACRO_LEN);
 
+    if (!macro_symbol || !symbol || !macro || !name)
+        return NULL;
+    
+    macro->name = name;
     symbol->macro = macro;
-    macro_union->symbol = symbol;
-    
-    if (!macro_union || !symbol || !macro)
-        return NULL;
-        
-    return macro_union;    
+    macro_symbol->symbol = symbol;
+
+    macro_symbol->type = SYMBOL_MACRO;
+
+    return macro_symbol;
 }
 
-/**
- * Destroys and frees all dynamically allocated objects of 
- * macro union struct.
- */
-void
-destroy_macro(symbol_t *macro)
+/* Initialize symbol struct for the data lines. */
+symbol_t *
+init_data()
 {
-    if(macro)
-    {
-        if (macro->symbol)
-        {
-            if (macro->symbol->macro)
-                SAFE_FREE(macro->symbol->macro)
-            SAFE_FREE(macro->symbol)
-        }
-        SAFE_FREE(macro)
-    }
+    symbol_t *data_symbol = (symbol_t *)malloc(sizeof(symbol_t));
+    union symbol_un *symbol = (union symbol_un *)malloc(sizeof(union symbol_un));
+    directive_t *directive = (directive_t *)malloc(sizeof(directive_t));
+    char *data =(char *)malloc(sizeof(char)*LINE_LEN);
+
+    if(!data_symbol || !symbol || !directive || !data)
+        return NULL;
+
+    directive->data = data;
+    symbol->directive = directive;
+    data_symbol->symbol = symbol;
+
+    data_symbol->type = SYMBOL_DATA;
+
+    return data_symbol;
 }
 
-/**
- * Creates a new node of symbol_t for the linked list,
- * with the properties of symbol and its type.
- * returns the list with the new node connected to its tail.
- * clean with destroy_list();
- */
+
+/* Initialize symbol struct for the code lines. */
+symbol_t *
+init_code()
+{
+    return NULL;
+}
+
+
 symbol_node *
-new_node(symbol_t *symbol, enum SYMBOL type)
+next_node(symbol_node **list, char *name, int value, enum SYMBOL property)
 {
-    symbol_node *tmp, *new;
-    tmp = list;
+    symbol_node *tmp = *list;
 
-    if(!(list->data))
-    {
-        
-    }
+    symbol_node *node = (symbol_node *)malloc(sizeof(symbol_node));
+    char *node_name = (char *)malloc(sizeof(char)*strlen(name));
 
-    /* Iterating through the linked list */
-    while(tmp->next)
-        tmp = tmp->next;
-    
-    new = (symbol_node *)malloc(sizeof(symbol_node));
-    if (!new)
+    if(!node || !node_name)
         return NULL;
-    
-    new->type = type;
-    switch (type)
+
+    /* The list is not empty; get the last node */
+     if(*list)
     {
-    case SYMBOL_MACRO:
-        new->data = symbol;
-        break;
-    
-    default:
-        break;
+        while(tmp)
+            tmp = tmp->next;
     }
 
-    return new;
+    node_name = name;
+
+    node->name = node_name;
+    node->value = value;
+    node->property = property;
+    node->next = NULL;
+
+    /* The list is not empty attach the new node to the tail */
+    if(*list)
+        (*list)->next = node;
+      
+    /* The list is empty, returning the new node as it's the only node in the new list */
+    else
+        *list = node;
+
+    return *list;
 }
 
-void
-destroy_list(symbol_node *list)
+int
+search_list(const symbol_node *list, char *name)
 {
-    symbol_node *tmp = list;
-    while(tmp->next)
+    symbol_node **tmp = (symbol_node **) &list;
+    if(!list)
+        return 0;
+    while((*tmp))
     {
-        list = list->next;
-        SAFE_FREE(tmp)
-        tmp = list;
+        if(strcmp_hash((*tmp)->name, name))
+            return 1;
+        (*tmp) = (*tmp)->next;
     }
-    return;
+    return 0;
+}
+
+
+
+void 
+free_list(symbol_node **list)
+{
+    symbol_node **tmp = *&list;
+    while(*tmp)
+    {
+        *list = (*list)->next;
+        SAFE_FREE((*tmp)->name)
+        SAFE_FREE(*tmp)
+        tmp = *&list;
+    }
 }

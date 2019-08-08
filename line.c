@@ -9,45 +9,139 @@
 char *strsub(char *, size_t , char *);
 char *is_label(char *);
 int is_macro(line_t *);
+int is_directive(line_t *);
+int is_instruction(line_t *);
 
 int 
 parse_line(line_t *pLINE)
 {
     char *label;
-    
-    /***********************************************\
-                        LABELS
-    \***********************************************/
-    if((label = is_label(pLINE->line)))
-        pLINE->label = label;
-    else
-        pLINE->label = NULL;
-    /************************************************/
+    int res = NOT_PARSED;
 
-    /* strtok label from line, thus taking only the substring */
-    if(pLINE->label)
+    /* Trim whitespaces */
+    trim_white(pLINE->line);
+
+    /********************************************\
+                        LABELS
+    \********************************************/
+    if((label = is_label(pLINE->line)))
     {
+        res |= PARSED_LABEL;
+        pLINE->label = label;
+
+        /* strtok label from line, thus taking only the substring */
         strtok(pLINE->line, " ");
         pLINE->line = strtok(NULL, "\0");
     }
-    /************************************************/
+    else
+        pLINE->label = NULL;
+    /********************************************/
 
-    /***********************************************\
-                        MACROS
-    \***********************************************/
+    /********************************************\
+                        MACROS                    
+    \********************************************/
     if(is_macro(pLINE))
-    {
-        if(pLINE->label)
-        {
-            ERROR_MSG("No label is allowed on a macro sentence\nAborting")
-            return PARSED_FAILURE;
-        }
-        return PARSED_MACRO;
-    }
-    /************************************************/
+        return (res | PARSED_MACRO);
+    /********************************************/
 
+
+    /********************************************\
+                     DIRECTIVES                   
+    \********************************************/
+    if (is_directive(pLINE))
+        res |= PARSED_DIRECTIVE;
+    /********************************************/
     
-    return PARSED_FAILURE;
+    return res;
+}
+
+
+int
+is_directive(line_t *pLINE)
+{
+    char *type, *ch, *data, *tmp;
+    symbol_t *directive;
+
+    tmp = (char *)malloc(sizeof(char)*LINE_LEN);
+    strcpy(tmp, pLINE->line);
+
+    ch = tmp;
+    data = (char *)malloc(sizeof(char)*LINE_LEN);
+    
+
+    /* trim whitespaces from start */
+    while(isspace(*ch++));
+
+    if(*(--ch) != '.')
+        return FALSE;
+    
+    type = strtok(ch,  " ");
+    data = strtok(NULL, "\0");
+
+    if(data[strlen(data) - 1] == '\n')
+        data[strlen(data) - 1] = '\0';
+/***************************************************************************************/
+/**************************************** .data ****************************************/
+/***************************************************************************************/
+    if(strcmp_hash(type, ".data"))
+    {
+        /* code .data */
+        puts("1");
+    } 
+/***************************************************************************************/
+
+/***************************************************************************************/
+/*************************************** .string ***************************************/
+/***************************************************************************************/
+    else if (strcmp_hash(type, ".string"))
+    {
+        if(data[0] == '"' && data[strlen(data) - 1] == '"')
+        {
+            if((directive = init_symbol(SYMBOL_DATA)))
+            {
+                /* Clear quotation marks */
+                data++;
+                data[strlen(data) - 1] = '\0';
+                
+                directive->symbol->directive->data = data;
+                pLINE->len = strlen(data) + 1 ;
+                pLINE->parsed = directive;
+                return TRUE;
+            }
+            else
+            {
+                ERROR_MSG("Failed to allocate memory for symbol_t\nAborting...\n")
+                return FALSE;
+            }
+        }
+        else
+        {
+            ERROR_MSG("Data is not enclosed with quatation marks\nAborting...\n")
+            return FALSE;
+        }        
+    }
+/***************************************************************************************/
+    else if (strcmp_hash(type, ".entry"))
+    {
+        /* code .entry */
+        puts("3");
+    }
+    else if (strcmp_hash(type, ".extern"))
+    {
+        /* code .extern*/
+        puts("4");
+    }
+    
+    
+    
+
+    return FALSE;
+}
+
+int
+is_instruction(line_t *pLINE)
+{
+    return 0;
 }
 
 /**
@@ -58,10 +152,12 @@ parse_line(line_t *pLINE)
 int 
 is_macro(line_t *pLINE)
 {
-    char *ch = pLINE->line;
-    char *name, *data_s;
+    char tmp[LINE_LEN], *ch, *name, *data_s;
     int data;
 
+    strcpy(tmp, pLINE->line);
+    ch = tmp;
+    
     /* trim whitespaces from start */
     while(isspace(*ch++));
 
@@ -73,17 +169,17 @@ is_macro(line_t *pLINE)
         name = strtok(NULL, "=");
         if (!macro)
         {
-            ERROR_MSG("Failed to allocate memory for macro_t\nAborting...")
+            ERROR_MSG("Failed to allocate memory for symbol_t\nAborting...\n")
             return FALSE;
         }
         
         /* Extracting the name of the macro */
         if((name = clear_str(name)) != NULL)
-            macro->symbol->macro->name = name;
+            strcpy(macro->symbol->macro->name, name);
         else
         {
-            ERROR_MSG("Error Extracting macro name\nAborting...")
-            destroy_macro(macro);
+            ERROR_MSG("Error Extracting macro name\nAborting...\n")
+            free_symbol(macro);
             return FALSE;
         }
 
@@ -94,8 +190,8 @@ is_macro(line_t *pLINE)
             macro->symbol->macro->data = data;
         else
         {
-            ERROR_MSG("Error extracting macro data\nAborting...")
-            destroy_macro(macro);
+            ERROR_MSG("Error extracting macro data\nAborting...\n")
+            free_symbol(macro);
             return FALSE;
         }
 
