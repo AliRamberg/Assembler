@@ -5,7 +5,7 @@
 
 
 /**
- * Validates a number is in boundaries of 13 bit words.
+ * Validates a number is in boundaries of 12 bit words.
  */
 int 
 is_valid(long num)
@@ -15,7 +15,7 @@ is_valid(long num)
 
 /**
  * Convert binary string to its equivalence integer number.
- * support 13 bit binary
+ * support 12 bit binary
  */
 int 
 conv_bd(int bin_num)
@@ -38,7 +38,7 @@ conv_bd(int bin_num)
 
 /**
  * Convert integer number to its equivalence binary *string*
- * support 13 bit binary
+ * support 12 bit binary
  */
 int 
 conv_db(int dec_num)

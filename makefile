@@ -1,5 +1,5 @@
 #
-# Makefile for Assembler in C
+# Makefile for Assembler in ANSI-C
 # Compiler: GNU C Compiler
 #
 CC = gcc
@@ -17,6 +17,9 @@ pass.o: pass.c
 macro.o: macro.c
 		$(CC) -o $@ -c $^ $(LDFLAGS)
 
+encode.o: encode.c
+		$(CC) -o $@ -c $^ $(LDFLAGS)
+
 misc.o: misc.c
 		$(CC) -o $@ -c $^ $(LDFLAGS)
 
@@ -27,6 +30,9 @@ math.o: math.c
 		$(CC) -o $@ -c $^ $(LDFLAGS)
 
 symbols.o: symbols.c
+		$(CC) -o $@ -c $^ $(LDFLAGS)
+
+opcodes.o: opcodes.c
 		$(CC) -o $@ -c $^ $(LDFLAGS)
 
 line.o: line.c

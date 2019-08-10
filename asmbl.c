@@ -17,11 +17,15 @@ main(int argc, char const *argv[])
 {
     int pass_return;
     FILE *fptr;     /* pointer to file object */
+
+    
+
     if (argc < 2)
     {
         fprintf(stderr, "No input files\nAssembling terminated.\n");
         return NO_FILE;
     }
+
 
     while(--argc)
     {
@@ -37,7 +41,7 @@ main(int argc, char const *argv[])
         pass_return = first_pass(fptr, &list);
         if (pass_return)
         {
-            fprintf(stderr, "First pass failed! (%s)\nTerminating... %d\n\n",argv[argc], 1);
+            fprintf(stderr, "First pass failed! (%s)\nTerminating... %d\n",argv[argc], 1);
             fclose(fptr);
             continue;
         }

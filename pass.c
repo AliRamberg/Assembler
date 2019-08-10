@@ -11,9 +11,10 @@
 int
 first_pass(FILE *fptr, symbol_node **list)
 {
-    char *line = (char *)malloc(sizeof(char) * LINE_LEN);
+    char *line = (char *)malloc(sizeof(char) * (LINE_LEN + 2));
     line_t *pLINE = (line_t *)malloc(sizeof(line_t));
-    int parse;
+    enum PARSE parse;
+    int result = FALSE;
 
     if(!line || !pLINE)
         return -1;
@@ -33,8 +34,13 @@ first_pass(FILE *fptr, symbol_node **list)
         /* Check if line is longer than LINE_LEN */
         if(strlen(line) > LINE_LEN)
         {
+            long p = ftell(fptr);
+            printf("Line length %ld\n", strlen(line));
+            printf("Current location %ld\n", p);
             ERROR_MSG("Line Exceeds max line length.")
-            return EXCEEDS_MAX_LENGTH;
+            /* TODO EVERYTJOMG */
+            fseek(fptr, p + strlen(line), SEEK_SET);
+            continue;
         }
 
         /* Check if line is a whitespace or a comment */
@@ -45,59 +51,13 @@ first_pass(FILE *fptr, symbol_node **list)
         /***************** PARSING LINE *****************/
         parse = parse_line(pLINE);                    /**/
         /************************************************/            
+        result = encode(parse, pLINE, list);
 
-        switch (parse)
-        {
-
-        case PARSED_MACRO:
-            next_node(
-                *&list,
-                pLINE->parsed->symbol->macro->name,
-                pLINE->parsed->symbol->macro->data,
-                SYMBOL_MACRO
-            );
-            IC += 2;
-            break;
-
-        case PARSED_DIRECTIVE:
-            next_node(*&list, EMPTY_STRING, IC + 100, SYMBOL_DATA);
-            IC += pLINE->len;
-            break;
-            
-        case PARSED_INSTRUCTION:
-            /* code */
-            break;
-            
-        case PARSED_LABEL:
-            if(search_list(*list, pLINE->label))
-            {
-                ERROR_MSG("Label was already set\nAborting...\n")
-                return 1;
-            }
-            next_node(*&list, pLINE->label, IC + 100, SYMBOL_CODE);
-            IC++;
-            break;
-        case (PARSED_LABEL | PARSED_MACRO):
-            ERROR_MSG("No label is allowed on a macro line\nAborting...\n")
-            return 1;
-        case (PARSED_LABEL | PARSED_DIRECTIVE):
-            if(search_list(*list, pLINE->label))
-            {
-                ERROR_MSG("Label was already set\nAborting...\n")
-                return 1;
-            }
-            next_node(*&list, pLINE->label, IC + 100, SYMBOL_DATA);
-            IC += pLINE->len;
-            break;
-        case (PARSED_LABEL | PARSED_INSTRUCTION):
-            break;
-        default:
-            ERROR_MSG("Unrecognized statement\nAborting...\n")
-            return 1;
-        }
+    if(pLINE->parsed)
+        free_symbol(pLINE->parsed);
     }
     LINE_FREE(pLINE);
-    return 0;
+    return result;
 }
 
 
@@ -105,6 +65,7 @@ int
 second_pass(FILE *fptr, symbol_node **list)
 {
     IC = 0;
+    DC = 0;
     line_num = 0;
 
 

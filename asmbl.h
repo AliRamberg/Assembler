@@ -18,6 +18,9 @@
 #define OPCODE_NUM 16
 #define REGISTER_NUM 8
 
+#define INITIAL_IC_ARR 100
+#define INITIAL_DC_ARR 100
+
 /**
  * Opcodes Instructions
  */
@@ -56,26 +59,19 @@ enum ARE_E
  * word datatype
  * each is of size of 14 bits.
  */
-struct
+struct WORD_T
 {
-    unsigned int are:2;     /* A.R.E addressing method */
-    unsigned int dst:2;     /* destination operand */
-    unsigned int src:2;     /* source operand */
-    unsigned int opcd:4;    /* opcode */
-    unsigned int unusd:4;   /* unused: initialized to 0 */
-} word_t;
-typedef struct word_t WORD_T;
-
-struct
-{
-    char *name;
-    unsigned int reg:14;
-} _register_t;
-typedef struct _register_t REGISTER;
+    signed int reg:14;
+};
+typedef struct WORD_T WORD_T;
 
 
 int line_num; /* current line number */
 int IC;  /* Instruction Counter */
 int DC; /* Data Conter */
+
+/* Instructions and Data binary words */
+WORD_T instruction_arr[INITIAL_IC_ARR];
+WORD_T data_arr[INITIAL_DC_ARR];
 
 #endif

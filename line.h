@@ -15,14 +15,6 @@ typedef struct line_st
     symbol_t *parsed;
 } line_t;
 
-enum DIRECTIVE 
-{
-    DIRECTIVE_DATA, 
-    DIRECTIVE_STRING, 
-    DIRECTIVE_ENTRY, 
-    DIRECTIVE_EXTERN
-};
-
 /* Three results that are available to parse_line() */
 enum PARSE
 {
@@ -36,9 +28,19 @@ enum PARSE
 };
 
 /**
- * TODO - Write API for below functions
+ * Main parsing function.
+ * Checks for label, macro, directive and instruction properties of current line.
  */
 int parse_line(line_t *);
+
+/**
+ * Encode the current line to the symbol list and the DC/IC arrays
+ */
+int encode(enum PARSE parse, line_t *pLINE, symbol_node **list);
+
+/**
+ * Line that is commented or that is consists of whitespaces only
+ */
 int skipable_line(char *);
 
 #endif

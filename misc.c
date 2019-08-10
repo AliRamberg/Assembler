@@ -14,7 +14,7 @@ LINE_FREE(line_t *oLINE)
 {
     if(oLINE->label)
         SAFE_FREE(oLINE->label)
-    if(oLINE->parsed->type)
+    if(oLINE->parsed)
         free_symbol(oLINE->parsed);
     /* if(oLINE->line)
         SAFE_FREE(oLINE->line)
@@ -42,47 +42,58 @@ is_num(char *str)
  * Contains only ASCII characters without the space character.
  */
 int
-is_string(char *str)
+is_string(const char * const s)
 {
-    char c;
-    for(c = *str; c < strlen(str); c++)
-        if(!IS_ASCII(c) || c == ' ')
-            return 1;
-    return 0;
+    const char *c;
+    for(c = s; *c; c++)
+        if(!IS_ASCII(*c))
+            return 0;
+    return 1;
 }
 
 /* Checks if str string is reserved and can be used */
 int
-is_reserved(char *str)
+is_reserved(char *s)
 {
-    int i;
-    char *reserved_opcodes[OPCODE_NUM] = 
-    {
-        "mov", "cmp", "add", "sub",
-        "not", "clr", "lea", "inc",
-        "dec", "jmp", "bne", "red",
-        "prn", "jst", "rts", "stop"
-    };
+    return (is_opcode(s) != -1) || is_register(s);
+}
+
+
+int
+is_register(char *s)
+{
+    size_t i;
     char *reserved_registers[REGISTER_NUM] = 
     {
         "r0", "r1", "r2", "r3",
         "r4", "r5", "r6", "r7" 
     };
-    for(i = 0; i < OPCODE_NUM + REGISTER_NUM; i++)
-    {
-        if (i < OPCODE_NUM)
-        {
-            if(strcmp_hash(str, reserved_opcodes[i]))
+
+    for(i = 0; i < REGISTER_NUM; i++)
+        if(strcmp_hash(s, reserved_registers[i]))
                 return 1;
-        }
-        else
-        {
-            if(strcmp_hash(str, reserved_registers[i]))
-                return 1;
-        }
-    }
     return 0;
 }
+
+
+int
+is_opcode(char *s)
+{
+    size_t i;
+    char *reserved_opcodes[OPCODE_NUM] = 
+    {
+        "mov", "cmp", "add", "sub",
+        "not", "clr", "lea", "inc",
+        "dec", "jmp", "bne", "red",
+        "prn", "jsr", "rts", "stop"
+    };
+
+    for(i = 0; i < OPCODE_NUM; i++)
+        if(strcmp_hash(s, reserved_opcodes[i]))
+                return i;
+    return ILLEGAL_INST;
+}
+
 
 /* Trim whitespaces from end of string */
 char *

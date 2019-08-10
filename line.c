@@ -12,7 +12,7 @@ int is_macro(line_t *);
 int is_directive(line_t *);
 int is_instruction(line_t *);
 
-int 
+enum PARSE 
 parse_line(line_t *pLINE)
 {
     char *label;
@@ -49,7 +49,14 @@ parse_line(line_t *pLINE)
                      DIRECTIVES                   
     \********************************************/
     if (is_directive(pLINE))
-        res |= PARSED_DIRECTIVE;
+        return (res | PARSED_DIRECTIVE);
+    /********************************************/
+
+    /********************************************\
+                     INSTRUCTION                   
+    \********************************************/
+    if (is_instruction(pLINE))
+        return (res | PARSED_INSTRUCTION);
     /********************************************/
     
     return res;
@@ -61,7 +68,7 @@ is_directive(line_t *pLINE)
 {
     char *type, *ch, *data, *tmp;
     symbol_t *directive;
-
+    
     tmp = (char *)malloc(sizeof(char)*LINE_LEN);
     strcpy(tmp, pLINE->line);
 
@@ -78,31 +85,51 @@ is_directive(line_t *pLINE)
     type = strtok(ch,  " ");
     data = strtok(NULL, "\0");
 
-    if(data[strlen(data) - 1] == '\n')
-        data[strlen(data) - 1] = '\0';
-/***************************************************************************************/
-/**************************************** .data ****************************************/
-/***************************************************************************************/
+    /***************************************************************************************/
+    /**************************************** .data ****************************************/
+    /***************************************************************************************/
     if(strcmp_hash(type, ".data"))
     {
-        /* code .data */
-        puts("1");
-    } 
-/***************************************************************************************/
+        int i = 0;
+        int num;
+        char *tmp, tmp_data[LINE_LEN];
+        strcpy(tmp_data, data);
+        tmp = strtok(tmp_data, ",");
+        if(!(directive = init_symbol(SYMBOL_DATA_NUMBERS)))
+        {
+            ERROR_MSG("Failed to allocate memory for symbol_t")
+            return FALSE;
+        }
+        
+        while(tmp)
+        {
+            if((num = is_num(tmp)) != _12BIT_MIN)
+                directive->symbol->directive->nums[i++] = num;
+            tmp = strtok(NULL, ",");
+        }
+        pLINE->len = i;
+        pLINE->parsed = directive;
+        return TRUE;
+    }
+    /***************************************************************************************/
 
-/***************************************************************************************/
-/*************************************** .string ***************************************/
-/***************************************************************************************/
+    /***************************************************************************************/
+    /*************************************** .string ***************************************/
+    /***************************************************************************************/
     else if (strcmp_hash(type, ".string"))
     {
         if(data[0] == '"' && data[strlen(data) - 1] == '"')
         {
-            if((directive = init_symbol(SYMBOL_DATA)))
+            if((directive = init_symbol(SYMBOL_DATA_STRING)))
             {
                 /* Clear quotation marks */
                 data++;
                 data[strlen(data) - 1] = '\0';
                 
+                /* Validates the characters in the string are of the ascii family */
+                if(!is_string(data))
+                        ERROR_MSG("The assembler doesn't support non-ascii characters")
+
                 directive->symbol->directive->data = data;
                 pLINE->len = strlen(data) + 1 ;
                 pLINE->parsed = directive;
@@ -110,29 +137,63 @@ is_directive(line_t *pLINE)
             }
             else
             {
-                ERROR_MSG("Failed to allocate memory for symbol_t\nAborting...\n")
+                ERROR_MSG("Failed to allocate memory for symbol_t")
                 return FALSE;
             }
         }
         else
         {
-            ERROR_MSG("Data is not enclosed with quatation marks\nAborting...\n")
+            ERROR_MSG("Data is not enclosed with quatation marks")
             return FALSE;
         }        
     }
-/***************************************************************************************/
+    /***************************************************************************************/
+    /*   
     else if (strcmp_hash(type, ".entry"))
-    {
-        /* code .entry */
-        puts("3");
-    }
+        {
+            DO NOTHING IF FOUNT .entry
+        } 
+    */
     else if (strcmp_hash(type, ".extern"))
     {
-        /* code .extern*/
-        puts("4");
+        char *tmp, tmp_data1[LINE_LEN];
+        int len = 0;
+        trim_white(data);
+        strcpy(tmp_data1, data);
+
+        tmp = strtok(tmp_data1, ",");
+        while(tmp)
+        {
+            if(is_string(tmp) && isdigit(tmp[0]))
+            {
+                tmp = strtok(NULL, ",");
+                len++;
+            }
+            else
+            {
+                ERROR_MSG("Illegal symbol name")
+                return FALSE;
+            }
+            
+        }
+
+        if((directive = init_symbol(SYMBOL_DATA_STRING)))
+        {
+            directive->symbol->directive->data = data;
+            pLINE->parsed = directive;
+            pLINE->parsed->type = SYMBOL_EXTERNAL;
+            pLINE->len = len;
+            return TRUE;
+        }
+        else
+        {
+            return FALSE;
+        }
+         
     }
     
-    
+    SAFE_FREE(type)
+    SAFE_FREE(data)
     
 
     return FALSE;
@@ -141,7 +202,76 @@ is_directive(line_t *pLINE)
 int
 is_instruction(line_t *pLINE)
 {
-    return 0;
+    char *tmp;
+    int code = ILLEGAL_INST;
+    tmp = (char *)malloc(sizeof(char)*LINE_LEN);
+    if(tmp)
+        strcpy(tmp, pLINE->line);
+    else
+        return FALSE;
+
+    strtok(tmp, " ");
+
+    if((code = is_opcode(tmp)) != ILLEGAL_INST)
+    {
+        switch (code)
+        {
+        case MOV:
+            puts("1");
+            break;
+        case CMP:
+            puts("2");
+            break;
+        case ADD:
+            puts("3");
+            break;
+        case SUB:
+            puts("4");
+            break;
+        case NOT:
+            puts("5");
+            break;
+        case CLR:
+            puts("6");
+            break;
+        case LEA:
+            puts("7");
+            break;
+        case INC:
+            puts("8");
+            break;
+        case DEC:
+            puts("9");
+            break;
+        case JMP:
+            puts("10");
+            break;
+        case BNE:
+            puts("11");
+            break;
+        case RED:
+            puts("12");
+            break;
+        case PRN:
+            puts("13");
+            break;
+        case JSR:
+            puts("14");
+            break;
+        case RTS:
+            puts("15");
+            break;
+        case STOP:
+            puts("16");
+            break;
+        
+        default:
+            break;
+        }
+        return TRUE;
+    }
+    ERROR_MSG("Unrecognized instruction")
+    return FALSE;
 }
 
 /**
@@ -169,7 +299,7 @@ is_macro(line_t *pLINE)
         name = strtok(NULL, "=");
         if (!macro)
         {
-            ERROR_MSG("Failed to allocate memory for symbol_t\nAborting...\n")
+            ERROR_MSG("Failed to allocate memory for symbol_t")
             return FALSE;
         }
         
@@ -178,19 +308,19 @@ is_macro(line_t *pLINE)
             strcpy(macro->symbol->macro->name, name);
         else
         {
-            ERROR_MSG("Error Extracting macro name\nAborting...\n")
+            ERROR_MSG("Error Extracting macro name")
             free_symbol(macro);
             return FALSE;
         }
 
         /* Extracting the data of the macro */
-        data_s = clear_str(strtok(NULL, "\0"));
+        data_s = clear_str(strtok(NULL, "\0")); 
         data = is_num(data_s);
         if(data != _12BIT_MIN)
             macro->symbol->macro->data = data;
         else
         {
-            ERROR_MSG("Error extracting macro data\nAborting...\n")
+            ERROR_MSG("Error extracting macro data")
             free_symbol(macro);
             return FALSE;
         }

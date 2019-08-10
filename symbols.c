@@ -4,7 +4,7 @@
 #include "symbols.h"
 
 symbol_t *init_macro();
-symbol_t *init_data();
+symbol_t *init_data(enum SYMBOL type);
 symbol_t *init_code();
 
 symbol_t *
@@ -18,9 +18,14 @@ init_symbol(enum SYMBOL type)
         if(sym)
             return sym;
         break;
-    case SYMBOL_DATA:
-        sym = init_data();
+    case SYMBOL_DATA_STRING:
+        sym = init_data(SYMBOL_DATA_STRING);
         if(sym)
+            return sym;
+        break;
+    case SYMBOL_DATA_NUMBERS:
+        sym = init_data(SYMBOL_DATA_NUMBERS);
+            if(sym)
             return sym;
         break;
     case SYMBOL_CODE:
@@ -47,7 +52,13 @@ free_symbol(symbol_t *sym)
         SAFE_FREE(sym->symbol)
         SAFE_FREE(sym)
         return;
-    case SYMBOL_DATA:
+    case SYMBOL_DATA_STRING:
+        SAFE_FREE(sym->symbol->directive)
+        SAFE_FREE(sym->symbol)
+        SAFE_FREE(sym)
+        return;
+    case SYMBOL_DATA_NUMBERS:
+        SAFE_FREE(sym->symbol->directive->nums)
         SAFE_FREE(sym->symbol->directive)
         SAFE_FREE(sym->symbol)
         SAFE_FREE(sym)
@@ -84,23 +95,52 @@ init_macro()
 
 /* Initialize symbol struct for the data lines. */
 symbol_t *
-init_data()
+init_data(enum SYMBOL type)
 {
     symbol_t *data_symbol = (symbol_t *)malloc(sizeof(symbol_t));
     union symbol_un *symbol = (union symbol_un *)malloc(sizeof(union symbol_un));
     directive_t *directive = (directive_t *)malloc(sizeof(directive_t));
-    char *data =(char *)malloc(sizeof(char)*LINE_LEN);
+    char *data = NULL;
+    int *nums = NULL;
 
-    if(!data_symbol || !symbol || !directive || !data)
-        return NULL;
+    if(data_symbol && symbol && directive)
+    {
 
-    directive->data = data;
-    symbol->directive = directive;
-    data_symbol->symbol = symbol;
+        /* Connecting the data objects together */
+        symbol->directive = directive;
+        data_symbol->symbol = symbol;
 
-    data_symbol->type = SYMBOL_DATA;
-
-    return data_symbol;
+        /* for .string */
+        if(type == SYMBOL_DATA_STRING)
+        {
+            data =(char *)malloc(sizeof(char)*LINE_LEN);
+            if(data)
+            {
+                directive->data = data;
+                data_symbol->type = SYMBOL_DATA_STRING;
+                return data_symbol;
+            }
+            return NULL;
+        }
+        /* for .data */
+        if (type == SYMBOL_DATA_NUMBERS)
+        {
+            nums = (int *)malloc(sizeof(int)*LINE_LEN);
+            if(nums)
+            {
+                directive->nums = nums;
+                data_symbol->type = SYMBOL_DATA_NUMBERS;
+                return data_symbol;
+            }
+            return NULL;
+        }
+    }
+    
+    SAFE_FREE(data_symbol)
+    SAFE_FREE(data)
+    SAFE_FREE(directive)
+    return NULL;
+        
 }
 
 
@@ -123,27 +163,28 @@ next_node(symbol_node **list, char *name, int value, enum SYMBOL property)
     if(!node || !node_name)
         return NULL;
 
-    /* The list is not empty; get the last node */
-     if(*list)
-    {
-        while(tmp)
-            tmp = tmp->next;
-    }
-
     node_name = name;
-
     node->name = node_name;
     node->value = value;
     node->property = property;
     node->next = NULL;
 
-    /* The list is not empty attach the new node to the tail */
-    if(*list)
-        (*list)->next = node;
-      
-    /* The list is empty, returning the new node as it's the only node in the new list */
-    else
+    if(!*list)
         *list = node;
+    
+
+    /* The list is not empty; get the last node andn set it */
+    while(tmp)
+    {
+        /* reached the end of the linked list */
+        if(!tmp->next)
+        {
+            tmp->next = node; /* setting the new node */
+            break;
+        }
+        else
+            tmp = tmp->next; /* proceeds to the next node */
+    }        
 
     return *list;
 }
@@ -168,12 +209,13 @@ search_list(const symbol_node *list, char *name)
 void 
 free_list(symbol_node **list)
 {
-    symbol_node **tmp = *&list;
-    while(*tmp)
+    symbol_node *tmp = *list;
+    while(tmp)
     {
         *list = (*list)->next;
-        SAFE_FREE((*tmp)->name)
-        SAFE_FREE(*tmp)
-        tmp = *&list;
+        if(tmp->name)
+            SAFE_FREE(tmp->name)
+        SAFE_FREE(tmp)
+        tmp = *list;
     }
 }

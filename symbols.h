@@ -11,7 +11,9 @@
 enum SYMBOL
 {
     SYMBOL_MACRO,
-    SYMBOL_DATA,
+    SYMBOL_DATA_STRING,
+    SYMBOL_DATA_NUMBERS,
+    SYMBOL_EXTERNAL,
     SYMBOL_CODE
 };
 
@@ -22,9 +24,10 @@ typedef struct macro_st
     int data;
 } macro_t;
 
-/* DIRECTIVE STRUCT */
-typedef struct directive_st
-{
+/* DIRECTIVE UNION */
+typedef union directive_st
+{   
+    int *nums;
     char *data;
 } directive_t;
 
