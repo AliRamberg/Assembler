@@ -64,7 +64,9 @@ free_symbol(symbol_t *sym)
         SAFE_FREE(sym)
         return;
     case SYMBOL_CODE:
-        /* code */
+        SAFE_FREE(sym->symbol->instruction)
+        SAFE_FREE(sym->symbol)
+        SAFE_FREE(sym)
         return;
     default:
         return;
@@ -148,7 +150,20 @@ init_data(enum SYMBOL type)
 symbol_t *
 init_code()
 {
-    return NULL;
+    symbol_t *data_symbol = (symbol_t *)malloc(sizeof(symbol_t));
+    union symbol_un *symbol = (union symbol_un *)malloc(sizeof(union symbol_un));
+    instruction_t *code = (instruction_t *)malloc(sizeof(instruction_t));
+
+    if(!data_symbol || !symbol || !code)
+    {
+        SAFE_FREE(data_symbol)
+        SAFE_FREE(symbol)
+        SAFE_FREE(code)
+        return NULL;
+    }
+    data_symbol->symbol = symbol;
+    symbol->instruction = code;
+    return data_symbol;
 }
 
 

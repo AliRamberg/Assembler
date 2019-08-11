@@ -30,7 +30,7 @@ int
 is_num(char *str)
 {
     char *ch;
-    int num = (int) strtol(str, &ch,DECIMAL_BACE);
+    int num = (int) strtol(str, &ch,DECIMAL_BASE);
     
     if((*ch == '\0') && is_valid(num))
         return num;
@@ -49,6 +49,12 @@ is_string(const char * const s)
         if(!IS_ASCII(*c))
             return 0;
     return 1;
+}
+
+int
+is_name(char * s)
+{
+    return (is_string(s) && isalpha(s[0]) && !is_reserved(s));
 }
 
 /* Checks if str string is reserved and can be used */
@@ -118,8 +124,8 @@ clear_str(char *str)
 {   
     char *ch = str;
     while(isspace(*ch++));
-    str = trim_white(--ch);
-    return str;
+    ch = trim_white(--ch);
+    return ch;
 }
 
 

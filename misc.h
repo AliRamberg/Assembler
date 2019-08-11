@@ -9,13 +9,14 @@
 
 /* Printing an error whith the line in the assembly file */
 #define ERROR_MSG(str) {fprintf(stderr, "\tLine %d - %s\n", line_num, str);} 
+#define ERROR_NUM(str, num) {fprintf(stderr, "\tLine %d - %s, expected %d.\n",line_num, str, num);}
 
 /* If c is a 7 bit value. */
 #define	IS_ASCII(c)	(((c) & ~0x7f) == 0) 
 
 #define ZERO_MEMORY(dst, len) memset((dst), 0, (len))
 
-#define DECIMAL_BACE 10
+#define DECIMAL_BASE 10
 #define INIT_PROTECTED_SIZE 10
 
 extern unsigned long protected[INIT_PROTECTED_SIZE];
@@ -27,7 +28,8 @@ char *trim_white(char *str);
 /* Math functions */
 int is_valid(long num);
 int is_num(char *num);
-int is_string(const char *str);
+int is_string(const char * const str);
+int is_name(char *str);
 
 /* Free the whole line object */
 void LINE_FREE(line_t *);

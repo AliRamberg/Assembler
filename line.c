@@ -5,6 +5,7 @@
 #include "asmbl.h"
 #include "misc.h"
 #include "symbols.h"
+#include "opcodes.h"
 
 char *strsub(char *, size_t , char *);
 char *is_label(char *);
@@ -151,7 +152,7 @@ is_directive(line_t *pLINE)
     /*   
     else if (strcmp_hash(type, ".entry"))
         {
-            DO NOTHING IF FOUNT .entry
+            DO NOTHING IF FOUND .entry
         } 
     */
     else if (strcmp_hash(type, ".extern"))
@@ -186,10 +187,7 @@ is_directive(line_t *pLINE)
             return TRUE;
         }
         else
-        {
-            return FALSE;
-        }
-         
+            return FALSE;         
     }
     
     SAFE_FREE(type)
@@ -203,6 +201,7 @@ int
 is_instruction(line_t *pLINE)
 {
     char *tmp;
+    char *operand;
     int code = ILLEGAL_INST;
     tmp = (char *)malloc(sizeof(char)*LINE_LEN);
     if(tmp)
@@ -210,64 +209,46 @@ is_instruction(line_t *pLINE)
     else
         return FALSE;
 
+    /* Extracts the opcode name */
     strtok(tmp, " ");
 
+    /* Validates the opcodes name */
     if((code = is_opcode(tmp)) != ILLEGAL_INST)
     {
-        switch (code)
+        size_t sz = 1; /* number of words, atleast one for the main instruction */
+        int addmod;
+        symbol_t *instruction;
+        int op = check_operands(pLINE->line, code);
+        if(!op)
         {
-        case MOV:
-            puts("1");
-            break;
-        case CMP:
-            puts("2");
-            break;
-        case ADD:
-            puts("3");
-            break;
-        case SUB:
-            puts("4");
-            break;
-        case NOT:
-            puts("5");
-            break;
-        case CLR:
-            puts("6");
-            break;
-        case LEA:
-            puts("7");
-            break;
-        case INC:
-            puts("8");
-            break;
-        case DEC:
-            puts("9");
-            break;
-        case JMP:
-            puts("10");
-            break;
-        case BNE:
-            puts("11");
-            break;
-        case RED:
-            puts("12");
-            break;
-        case PRN:
-            puts("13");
-            break;
-        case JSR:
-            puts("14");
-            break;
-        case RTS:
-            puts("15");
-            break;
-        case STOP:
-            puts("16");
-            break;
-        
-        default:
-            break;
+            SAFE_FREE(tmp)
+            return FALSE;
         }
+        if(op > 1)
+        {
+            /* Get the correct address mode for the source operand */
+            operand = strtok(NULL, ",");
+            addmod = get_addmode(operand, code, DST);
+            sz += addmod_sz(addmod);
+        }
+        if (op > 2)
+        {
+            /* Get the correct address mode for the destination operand */
+            operand = strtok(NULL, "\0");
+            addmod = get_addmode(operand, code, SRC);
+            sz += addmod_sz(addmod);
+        }
+
+        instruction = init_symbol(SYMBOL_CODE);
+        /* number of words */
+        pLINE->len = sz;
+        pLINE->parsed = instruction;
+        pLINE->parsed->type = SYMBOL_CODE;
+
+        printf("line length is %d\n", pLINE->len);
+        
+        SAFE_FREE(tmp)
+
         return TRUE;
     }
     ERROR_MSG("Unrecognized instruction")

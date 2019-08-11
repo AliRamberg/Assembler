@@ -34,7 +34,8 @@ typedef union directive_st
 /* INSTRUCTION STRUCT */
 typedef struct instruction_st
 {
-    int type;
+    int addmod_dst;
+    int addmod_src;
 } instruction_t;
 
 /* SYMBOL UNION, CONTAINS ONE OF THE STRUCTS ABOVE */

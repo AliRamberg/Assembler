@@ -34,12 +34,9 @@ first_pass(FILE *fptr, symbol_node **list)
         /* Check if line is longer than LINE_LEN */
         if(strlen(line) > LINE_LEN)
         {
-            long p = ftell(fptr);
-            printf("Line length %ld\n", strlen(line));
-            printf("Current location %ld\n", p);
+            char c;
             ERROR_MSG("Line Exceeds max line length.")
-            /* TODO EVERYTJOMG */
-            fseek(fptr, p + strlen(line), SEEK_SET);
+            while((c = fgetc(fptr)) != '\n' && c != '\0');
             continue;
         }
 
@@ -53,8 +50,8 @@ first_pass(FILE *fptr, symbol_node **list)
         /************************************************/            
         result = encode(parse, pLINE, list);
 
-    if(pLINE->parsed)
-        free_symbol(pLINE->parsed);
+        if(pLINE->parsed)
+            free_symbol(pLINE->parsed);
     }
     LINE_FREE(pLINE);
     return result;
