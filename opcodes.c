@@ -40,12 +40,12 @@ check_operands(char *line, unsigned ins)
     else if (c_ops > ops)
     {
         ERROR_NUM("Not enough operands", c_ops)
-        return FALSE;
+        return ERROR;
     }
     else
     {
         ERROR_NUM("Too many operands", c_ops)
-        return FALSE;
+        return ERROR;
     }    
 }
 
@@ -77,6 +77,10 @@ get_addmode(char *operand, unsigned code, int mode)
     /* Supported addressing mode for current opcode */
     int sup_mode = opcodes[code][mode];
 
+    char tmp[LINE_LEN];
+    char *macro;
+    strcpy(tmp, operand);
+
     operand = clear_str(operand);
     
     if((sup_mode & ADDMODE_0) && *(operand) == '#' && (is_name(++operand) || is_num(operand)))
@@ -84,31 +88,36 @@ get_addmode(char *operand, unsigned code, int mode)
         puts("ADDMODE_0");
         return ADDMODE_0;
     }
-    else if((sup_mode & ADDMODE_1) && is_name(operand))
+    else if ((sup_mode & ADDMODE_2) && is_name(strtok(tmp, "[")))
     {
-        puts("ADDMODE_1");
-        return ADDMODE_1;
+            macro = strtok(NULL, "]");
+            if(is_name(macro))
+            {
+                puts("ADDMODE_2 - macro");
+                return ADDMODE_2;
+            }
+            else if (is_num(macro))
+            {
+                puts("ADDMODE_2 - number");
+                return ADDMODE_2;
+            }
+            else
+            {
+                ERROR_MSG("Failed to interpret the appropriate addressing mode")
+                return ERROR;
+            }
+            
+            
     }
     else if((sup_mode & ADDMODE_3) && is_register(operand))
     {
         puts("ADDMODE_3");
         return ADDMODE_3;
     }
-    else if (sup_mode & ADDMODE_2)
+    else if((sup_mode & ADDMODE_1) && is_name(operand))
     {
-        char tmp[LINE_LEN];
-        char *macro;
-        strcpy(tmp, operand);
-        strtok(tmp, "[");
-        if(is_name(tmp))
-        {
-            macro = strtok(NULL, "]");
-            if(is_name(macro) || (is_num(macro)))
-            {
-                puts("ADDMODE_2");
-                return ADDMODE_2;
-            }
-        }
+        puts("ADDMODE_1");
+        return ADDMODE_1;
     }
     
     else

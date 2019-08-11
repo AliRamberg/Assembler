@@ -1,4 +1,4 @@
-mov r1, r9
+mov A[label],r2
 
 stop
 ;LABEL12: .string "aaaaaa"              

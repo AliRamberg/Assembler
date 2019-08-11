@@ -45,7 +45,6 @@ parse_line(line_t *pLINE)
         return (res | PARSED_MACRO);
     /********************************************/
 
-
     /********************************************\
                      DIRECTIVES                   
     \********************************************/
@@ -56,7 +55,7 @@ parse_line(line_t *pLINE)
     /********************************************\
                      INSTRUCTION                   
     \********************************************/
-    if (is_instruction(pLINE))
+    if (is_instruction( pLINE))
         return (res | PARSED_INSTRUCTION);
     /********************************************/
     
@@ -217,35 +216,39 @@ is_instruction(line_t *pLINE)
     {
         size_t sz = 1; /* number of words, atleast one for the main instruction */
         int addmod;
-        symbol_t *instruction;
+        symbol_t *instruction = init_symbol(SYMBOL_CODE);
         int op = check_operands(pLINE->line, code);
-        if(!op)
+        if(op == ERROR || !instruction)
         {
             SAFE_FREE(tmp)
+            free_symbol(instruction);
             return FALSE;
         }
-        if(op > 1)
+        if(op > 0)
         {
             /* Get the correct address mode for the source operand */
             operand = strtok(NULL, ",");
             addmod = get_addmode(operand, code, DST);
+            instruction->symbol->instruction->addmod_dst = 
+
             sz += addmod_sz(addmod);
         }
-        if (op > 2)
+        if (op > 1)
         {
             /* Get the correct address mode for the destination operand */
-            operand = strtok(NULL, "\0");
+            operand += 1 + strlen(operand);
             addmod = get_addmode(operand, code, SRC);
             sz += addmod_sz(addmod);
         }
 
-        instruction = init_symbol(SYMBOL_CODE);
+
         /* number of words */
         pLINE->len = sz;
         pLINE->parsed = instruction;
         pLINE->parsed->type = SYMBOL_CODE;
 
         printf("line length is %d\n", pLINE->len);
+        puts("DONE LINE");
         
         SAFE_FREE(tmp)
 
