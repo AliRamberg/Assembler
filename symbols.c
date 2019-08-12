@@ -205,7 +205,7 @@ next_node(symbol_node **list, char *name, int value, enum SYMBOL property)
 }
 
 int
-search_list(const symbol_node *list, char *name)
+search_list(const symbol_node *list, char *name, int *value)
 {
     symbol_node **tmp = (symbol_node **) &list;
     if(!list)
@@ -213,7 +213,7 @@ search_list(const symbol_node *list, char *name)
     while((*tmp))
     {
         if(strcmp_hash((*tmp)->name, name))
-            return 1;
+            return (*tmp)->value;
         (*tmp) = (*tmp)->next;
     }
     return 0;

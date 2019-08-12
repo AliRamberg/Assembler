@@ -31,6 +31,8 @@ int is_num(char *num);
 int is_string(const char * const str);
 int is_name(char *str);
 
+int conv_addmod(int mode);
+
 /* Free the whole line object */
 void LINE_FREE(line_t *);
 
@@ -40,6 +42,5 @@ int strcmp_hash(char *, char *);
 int is_reserved(char *s);
 int is_opcode(char *s);
 int is_register(char *s);
-int insert_protected(char *);
 
 #endif

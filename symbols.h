@@ -10,7 +10,7 @@
 
 enum SYMBOL
 {
-    SYMBOL_MACRO,
+    SYMBOL_MACRO = 1,
     SYMBOL_DATA_STRING,
     SYMBOL_DATA_NUMBERS,
     SYMBOL_EXTERNAL,
@@ -34,8 +34,12 @@ typedef union directive_st
 /* INSTRUCTION STRUCT */
 typedef struct instruction_st
 {
+    int opcode;
     int addmod_dst;
     int addmod_src;
+    int are_src;
+    int are_dst;
+    char *source, *destination;
 } instruction_t;
 
 /* SYMBOL UNION, CONTAINS ONE OF THE STRUCTS ABOVE */
@@ -69,7 +73,7 @@ typedef struct symbol_node
 /* Functions that are visible */
 symbol_t *init_symbol(enum SYMBOL type);
 symbol_node *next_node(symbol_node **list, char *name, int value, enum SYMBOL property);
-int search_list(const symbol_node *list, char *name);
+int search_list(const symbol_node *list, char *name, int *value);
 void free_list(symbol_node **list);
 void free_symbol(symbol_t *symbol);
 

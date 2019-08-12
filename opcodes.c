@@ -72,51 +72,50 @@ num_operands(char *line)
  * parse the operand for the correct addressing mode used
  */
 int
-get_addmode(char *operand, unsigned code, int mode)
+get_addmode(char *operand, unsigned code, int mode, int *abs, char *p_macro)
 {
     /* Supported addressing mode for current opcode */
     int sup_mode = opcodes[code][mode];
 
     char tmp[LINE_LEN];
     char *macro;
-    strcpy(tmp, operand);
 
-    operand = clear_str(operand);
+    strcpy(tmp, operand);
     
     if((sup_mode & ADDMODE_0) && *(operand) == '#' && (is_name(++operand) || is_num(operand)))
     {
-        puts("ADDMODE_0");
+        if(is_num(operand))
+            *abs = TRUE;
+        *abs = FALSE;
         return ADDMODE_0;
     }
     else if ((sup_mode & ADDMODE_2) && is_name(strtok(tmp, "[")))
     {
+            strcpy(p_macro, tmp);
             macro = strtok(NULL, "]");
             if(is_name(macro))
             {
-                puts("ADDMODE_2 - macro");
+                *abs = FALSE;
                 return ADDMODE_2;
             }
             else if (is_num(macro))
             {
-                puts("ADDMODE_2 - number");
+                *abs = TRUE;
                 return ADDMODE_2;
             }
             else
             {
                 ERROR_MSG("Failed to interpret the appropriate addressing mode")
                 return ERROR;
-            }
-            
-            
+            }        
     }
     else if((sup_mode & ADDMODE_3) && is_register(operand))
     {
-        puts("ADDMODE_3");
+        *abs = TRUE;
         return ADDMODE_3;
     }
     else if((sup_mode & ADDMODE_1) && is_name(operand))
     {
-        puts("ADDMODE_1");
         return ADDMODE_1;
     }
     
@@ -134,4 +133,27 @@ addmod_sz(int mode)
     if(mode & ADDMODE_2)
         return 2;
     return 1;
+}
+
+int
+get_are(int mode, int local)
+{
+    switch (mode)
+    {
+    case ADDMODE_0:
+        return ABSOLUTE;
+    case ADDMODE_3:
+        return ABSOLUTE;
+    case ADDMODE_1:
+        if(local)
+            return RELOCATABLE;
+        return EXTERNAL;
+    case ADDMODE_2:
+        if(local)
+            return RELOCATABLE;
+        return EXTERNAL;
+    default:
+        break;
+    }
+    return ERROR;
 }

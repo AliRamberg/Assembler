@@ -42,17 +42,11 @@
 #define STOP 15
 /**********************/
 
-#define IMMIDIATE 0
+
 #define NEGATIVE '-'
 #define POSITIVE '+'
 enum BOOL {FALSE, TRUE};
 
-enum ARE_E
-{
-    A = 0,
-    R = 1,
-    E = 2
-};
 
 
 /**

@@ -20,7 +20,7 @@ parse_line(line_t *pLINE)
     int res = NOT_PARSED;
 
     /* Trim whitespaces */
-    trim_white(pLINE->line);
+    clear_str(pLINE->line);
 
     /********************************************\
                         LABELS
@@ -31,7 +31,8 @@ parse_line(line_t *pLINE)
         pLINE->label = label;
 
         /* strtok label from line, thus taking only the substring */
-        strtok(pLINE->line, " ");
+        strtok(pLINE->line, " \t");
+        /* pLINE->line += strlen(pLINE->label) + 1; */
         pLINE->line = strtok(NULL, "\0");
     }
     else
@@ -55,7 +56,7 @@ parse_line(line_t *pLINE)
     /********************************************\
                      INSTRUCTION                   
     \********************************************/
-    if (is_instruction( pLINE))
+    if (is_instruction(pLINE))
         return (res | PARSED_INSTRUCTION);
     /********************************************/
     
@@ -199,45 +200,70 @@ is_directive(line_t *pLINE)
 int
 is_instruction(line_t *pLINE)
 {
-    char *tmp;
+    char *tmp, *pst;
     char *operand;
     int code = ILLEGAL_INST;
-    tmp = (char *)malloc(sizeof(char)*LINE_LEN);
+    tmp = pst = (char *)malloc(sizeof(char)*LINE_LEN);
     if(tmp)
         strcpy(tmp, pLINE->line);
     else
         return FALSE;
 
     /* Extracts the opcode name */
-    strtok(tmp, " ");
+    while(isspace(*tmp))
+        tmp++;
+    strtok(tmp, " \t");
 
     /* Validates the opcodes name */
     if((code = is_opcode(tmp)) != ILLEGAL_INST)
     {
         size_t sz = 1; /* number of words, atleast one for the main instruction */
-        int addmod;
+        int addmod, abs = ERROR;
+        char macro_name[MACRO_LEN];
         symbol_t *instruction = init_symbol(SYMBOL_CODE);
         int op = check_operands(pLINE->line, code);
+        int are_src, are_dst;
         if(op == ERROR || !instruction)
         {
-            SAFE_FREE(tmp)
+            SAFE_FREE(pst)
             free_symbol(instruction);
             return FALSE;
-        }
-        if(op > 0)
-        {
-            /* Get the correct address mode for the source operand */
-            operand = strtok(NULL, ",");
-            addmod = get_addmode(operand, code, DST);
-            instruction->symbol->instruction->addmod_dst = 
-
-            sz += addmod_sz(addmod);
         }
         if (op > 1)
         {
             /* Get the correct address mode for the destination operand */
+            operand = clear_str(strtok(NULL, ","));
+            addmod = get_addmode(operand, code, SRC, &abs, &*macro_name);
+            instruction->symbol->instruction->addmod_src = conv_addmod(addmod);
+            if(abs)
+                are_src = get_are(addmod, TRUE);
+            else
+            {
+                are_src = get_are(addmod, FALSE);
+                instruction->symbol->instruction->source = macro_name;
+            }
+            
+            instruction->symbol->instruction->are_src = are_src;
+            sz += addmod_sz(addmod);
             operand += 1 + strlen(operand);
-            addmod = get_addmode(operand, code, SRC);
+        }
+        operand = clear_str(operand);
+        strtok(operand, "\t ");
+        if(op > 0)
+        {
+            /* Get the correct address mode for the source operand */
+            operand = clear_str(operand);
+            addmod = get_addmode(operand, code, DST, &abs, &*macro_name);
+            instruction->symbol->instruction->addmod_dst = conv_addmod(addmod);
+            if(abs)
+                are_dst = get_are(addmod, TRUE);
+            else
+            {
+                are_dst = get_are(addmod, FALSE);
+                instruction->symbol->instruction->destination = macro_name;
+            }
+
+            instruction->symbol->instruction->are_dst = are_dst;
             sz += addmod_sz(addmod);
         }
 
@@ -246,11 +272,9 @@ is_instruction(line_t *pLINE)
         pLINE->len = sz;
         pLINE->parsed = instruction;
         pLINE->parsed->type = SYMBOL_CODE;
+        pLINE->parsed->symbol->instruction->opcode = code;
 
-        printf("line length is %d\n", pLINE->len);
-        puts("DONE LINE");
-        
-        SAFE_FREE(tmp)
+        SAFE_FREE(pst)
 
         return TRUE;
     }
@@ -332,7 +356,7 @@ is_label(char *line)
         while(isgraph(*ch) && *ch  != ':')
             ch++;
         /* Reached the end of the label title */
-        if(*ch == ':' && *(ch + 1) == ' ')
+        if(*ch == ':' && isspace(*(ch + 1)))
         {
             label = strsub(st, ch - st, line);
 
