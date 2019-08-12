@@ -14,6 +14,7 @@ enum SYMBOL
     SYMBOL_DATA_STRING,
     SYMBOL_DATA_NUMBERS,
     SYMBOL_EXTERNAL,
+    SYMBOL_ENTRY,
     SYMBOL_CODE
 };
 
@@ -76,5 +77,6 @@ symbol_node *next_node(symbol_node **list, char *name, int value, enum SYMBOL pr
 int search_list(const symbol_node *list, char *name, int *value);
 void free_list(symbol_node **list);
 void free_symbol(symbol_t *symbol);
+void update_data(symbol_node *list);
 
 #endif

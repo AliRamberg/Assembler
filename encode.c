@@ -16,7 +16,6 @@ int
 encode(enum PARSE parse, line_t *pLINE, symbol_node **list)
 {
     int i, ERR_FLAG = FALSE;
-    int value = ERROR;
     switch ((int) parse)
     {
 
@@ -44,32 +43,8 @@ encode(enum PARSE parse, line_t *pLINE, symbol_node **list)
     
     case PARSED_INSTRUCTION:
         i = 1;
-        /* INSTRUCTION WORD */
+        /* INSTRUCTION FIRST WORD */
         instruction_arr[IC].reg = (pLINE->parsed->symbol->instruction->opcode << 6) | (pLINE->parsed->symbol->instruction->addmod_src << 4) | (pLINE->parsed->symbol->instruction->addmod_dst << 2);
-        /* SOURCE WORD */
-        if(pLINE->len > 1)
-        {
-            /* IS A NAME, so it's not a number */
-            if(pLINE->parsed->symbol->instruction->are_src & (EXTERNAL | RELOCATABLE))
-            {
-                /* RELOCATABLE */
-                if(search_list(*list, pLINE->parsed->symbol->instruction->source, &value))
-                    instruction_arr[IC + i++].reg = (value << 2) | RELOCATABLE;
-                /* EXTERNAL */
-                else
-                    instruction_arr[IC + i++].reg = (value << 2) | EXTERNAL;
-            }
-            /* ABSOLUTE */
-            else
-                instruction_arr[IC + i++].reg = (atoi(pLINE->parsed->symbol->instruction->source) << 2) | ABSOLUTE;
-        }
-        /* DESTINATION WORD*/
-        if (pLINE->len > 0)
-        {
-            instruction_arr[IC + i].reg = (atoi(pLINE->parsed->symbol->instruction->destination) << 2) | (pLINE->parsed->symbol->instruction->are_dst);
-        }
-        for(i = 0; i < pLINE->len; i++)
-            printf("%d \n", instruction_arr[IC + i].reg);
         IC += pLINE->len;
         break;
         
@@ -144,4 +119,12 @@ conv_addmod(int mode)
         return 3;
     }
     return ERROR;
+}
+
+
+int
+entry_encode(char *entry, line_t *pLINE, symbol_node **list)
+{
+    next_node(*&list, entry, IC + 100, SYMBOL_ENTRY);
+    return 0;
 }

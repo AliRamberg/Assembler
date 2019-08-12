@@ -50,6 +50,9 @@ first_pass(FILE *fptr, symbol_node **list)
         /************************************************/            
         result = encode(parse, pLINE, list);
 
+        /* Update the value of all the data symbols by IC+100 */
+        update_data(*list);
+        
         if(pLINE->parsed)
             free_symbol(pLINE->parsed);
     }
@@ -61,9 +64,39 @@ first_pass(FILE *fptr, symbol_node **list)
 int
 second_pass(FILE *fptr, symbol_node **list)
 {
+    char *line = (char *)malloc(sizeof(char)*LINE_LEN);
+    line_t *pLINE = (line_t *)malloc(sizeof(line_t));;
     IC = 0;
-    DC = 0;
     line_num = 0;
+    
+    if(!line || !pLINE)
+    {
+        SAFE_FREE(line)
+        SAFE_FREE(pLINE)
+        return FALSE;
+    }
+    pLINE->line = line;
+
+    /* rewind the file */
+    rewind(fptr);
+
+    while (fgets(line, LINE_LEN + 2, fptr) != NULL)
+    {
+        pLINE->line = line;
+        if(line[strlen(line) - 1] == '\n')
+            line[strlen(line) - 1] = '\0';
+
+        line_num++;
+
+        clear_str(pLINE->line);
+        if(skip_lines_sec_pass(pLINE))
+            continue;
+        if((is_entry(pLINE)))
+        {
+            continue;
+        }
+        /* encode_operands(pLINE,  ) */
+    }
 
 
     free_list(*&list);

@@ -55,6 +55,8 @@ enum BOOL {FALSE, TRUE};
  */
 struct WORD_T
 {
+    int type;
+    char *name;
     signed int reg:14;
 };
 typedef struct WORD_T WORD_T;

@@ -1,6 +1,6 @@
-mov A[label],r2
+;mov A[label],r2
 
-stop
+lea r1, r2
 ;LABEL12: .string "aaaaaa"              
 ;.define len = -4
 ;

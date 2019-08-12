@@ -2,6 +2,7 @@
 #include <string.h>
 #include "misc.h"
 #include "symbols.h"
+#include "asmbl.h"
 
 symbol_t *init_macro();
 symbol_t *init_data(enum SYMBOL type);
@@ -233,4 +234,17 @@ free_list(symbol_node **list)
         SAFE_FREE(tmp)
         tmp = *list;
     }
+}
+
+void
+update_data(symbol_node *list)
+{
+    symbol_node *tmp = list;
+    while (tmp)
+    {
+        if(tmp->property == SYMBOL_DATA_NUMBERS || tmp->property == SYMBOL_DATA_STRING)
+            tmp->value += IC + 100;
+        tmp = tmp->next;
+    }
+    
 }

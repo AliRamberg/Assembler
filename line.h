@@ -37,10 +37,12 @@ int parse_line(line_t *);
  * Encode the current line to the symbol list and the DC/IC arrays
  */
 int encode(enum PARSE parse, line_t *pLINE, symbol_node **list);
-
+int entry_encode(char *entry, line_t *pLINE, symbol_node **list);
 /**
  * Line that is commented or that is consists of whitespaces only
  */
 int skipable_line(char *);
+int skip_lines_sec_pass(line_t *pLINE);
+int is_entry(line_t *pLINE);
 
 #endif

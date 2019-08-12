@@ -34,7 +34,6 @@ check_operands(char *line, unsigned ins)
     int c_ops = opcodes[ins][OPERANDS_NUM];
     if(c_ops == ops)
     {
-        puts("Found all operands");
         return ops;
     }    
     else if (c_ops > ops)
@@ -89,7 +88,12 @@ get_addmode(char *operand, unsigned code, int mode, int *abs, char *p_macro)
         *abs = FALSE;
         return ADDMODE_0;
     }
-    else if ((sup_mode & ADDMODE_2) && is_name(strtok(tmp, "[")))
+    else if((sup_mode & ADDMODE_3) && is_register(operand))
+    {
+        *abs = TRUE;
+        return ADDMODE_3;
+    }
+    else if ((sup_mode & ADDMODE_2) && is_name(strtok(tmp, "[")) && (*(tmp + 1) == '['))
     {
             strcpy(p_macro, tmp);
             macro = strtok(NULL, "]");
@@ -109,11 +113,6 @@ get_addmode(char *operand, unsigned code, int mode, int *abs, char *p_macro)
                 return ERROR;
             }        
     }
-    else if((sup_mode & ADDMODE_3) && is_register(operand))
-    {
-        *abs = TRUE;
-        return ADDMODE_3;
-    }
     else if((sup_mode & ADDMODE_1) && is_name(operand))
     {
         return ADDMODE_1;
@@ -121,7 +120,7 @@ get_addmode(char *operand, unsigned code, int mode, int *abs, char *p_macro)
     
     else
     {
-        ERROR_MSG("Failed to interpret the appropriate addressing mode")
+        ERROR_MSG("Failed to interpret the appropriate addressing mode\n\tMost likely unsupported addressing mode for the requested opcode")
         return ERROR;
     }
     return ERROR;

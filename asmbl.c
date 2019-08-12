@@ -4,6 +4,7 @@
 #include "asmbl.h"
 #include "pass.h"
 #include "misc.h"
+#include "files.h"
 
 /* 
 static REGISTER r0, r1, r2, r3, r4, r5, r6, r7;
@@ -17,8 +18,8 @@ main(int argc, char const *argv[])
 {
     int pass_return;
     FILE *fptr;     /* pointer to file object */
+    symbol_node *list = NULL;
 
-    
 
     if (argc < 2)
     {
@@ -29,37 +30,38 @@ main(int argc, char const *argv[])
 
     while(--argc)
     {
-        symbol_node *list = NULL;
-        fprintf(stdout, "Assembling file %s...\n", argv[argc]);
+        const char *filename = argv[argc];
 
-        fptr = fopen(argv[argc], "r");
+        if(!validate_filename(filename))
+        {
+            fprintf(stderr, "The assembler accepts only .as files\n");
+            continue;
+        }
+
+        fprintf(stdout, "Assembling file %s...\n", filename);
+
+        fptr = fopen(filename, "r");
         if(!fptr)
         {
-            fprintf(stderr, "Failed to open file %s, %d\n", argv[argc], errno);
+            fprintf(stderr, "Failed to open file %s, %d\n", filename, errno);
             continue;
         }
         pass_return = first_pass(fptr, &list);
         if (pass_return)
         {
-            fprintf(stderr, "First pass failed! (%s)\nTerminating... %d\n",argv[argc], 1);
+            fprintf(stderr, "First pass failed! (%s)\nTerminating... %d\n",filename, 1);
             fclose(fptr);
             continue;
         }
         pass_return = second_pass(fptr, &list);
         if (pass_return)
         {
-            fprintf(stderr, "Second pass failed! (%s)\nTerminating... %d\n",argv[argc], 1);
+            fprintf(stderr, "Second pass failed! (%s)\nTerminating... %d\n",filename, 1);
             fclose(fptr);
             continue;
         }
         fclose(fptr);
-        fprintf(stdout, "Fishished assembling file %s\n", argv[argc]);
+        fprintf(stdout, "Fishished assembling file %s\n", filename);
     }
-    /* pass_return = insert_protected("ABC");
-    if(pass_return)
-        printf("%d - BAD\n", pass_return);
-    else
-        printf("%d - GOOD\n", pass_return);
-    printf("Protected element is %ld\n.", protected[0]); */
     return EXIT_SUCCESS;
 }

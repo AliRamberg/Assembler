@@ -201,7 +201,7 @@ int
 is_instruction(line_t *pLINE)
 {
     char *tmp, *pst;
-    char *operand;
+    char *operand, *line, *operand2;
     int code = ILLEGAL_INST;
     tmp = pst = (char *)malloc(sizeof(char)*LINE_LEN);
     if(tmp)
@@ -229,11 +229,25 @@ is_instruction(line_t *pLINE)
             free_symbol(instruction);
             return FALSE;
         }
+
+        line = clear_str(pLINE->line);
+        strtok(line, "\t ");
+        operand = strtok(NULL, "\t ,");
+        if(operand)
+        {
+            operand2 = operand + strlen(operand) + 1;
+            while(isspace(*operand2) || *operand2 == ',') operand2++;
+        }
+
         if (op > 1)
         {
             /* Get the correct address mode for the destination operand */
-            operand = clear_str(strtok(NULL, ","));
-            addmod = get_addmode(operand, code, SRC, &abs, &*macro_name);
+            addmod = get_addmode(operand2, code, SRC, &abs, &*macro_name);
+            if(addmod == ERROR)
+            {
+                SAFE_FREE(pst)
+                return FALSE;
+            }
             instruction->symbol->instruction->addmod_src = conv_addmod(addmod);
             if(abs)
                 are_src = get_are(addmod, TRUE);
@@ -245,15 +259,16 @@ is_instruction(line_t *pLINE)
             
             instruction->symbol->instruction->are_src = are_src;
             sz += addmod_sz(addmod);
-            operand += 1 + strlen(operand);
         }
-        operand = clear_str(operand);
-        strtok(operand, "\t ");
         if(op > 0)
         {
             /* Get the correct address mode for the source operand */
-            operand = clear_str(operand);
             addmod = get_addmode(operand, code, DST, &abs, &*macro_name);
+            if(addmod == ERROR)
+            {
+                SAFE_FREE(pst)
+                return FALSE;
+            }
             instruction->symbol->instruction->addmod_dst = conv_addmod(addmod);
             if(abs)
                 are_dst = get_are(addmod, TRUE);
@@ -429,4 +444,47 @@ strsub(char *pos, size_t len, char *str)
     sub[c] = '\0';
 
     return sub;
+}
+
+/**
+ * Check if the current line is .data .extern or .string
+ */
+int
+skip_lines_sec_pass(line_t *pLINE)
+{
+    if(is_label(pLINE->line))
+    {
+        /* strtok label from line, thus taking only the substring */
+        strtok(pLINE->line, " \t");
+        /* pLINE->line += strlen(pLINE->label) + 1; */
+        pLINE->line = strtok(NULL, "\0");
+    }
+    if(strncmp(pLINE->line, ".data", 5) == 0)
+        return TRUE;
+    if(strncmp(pLINE->line, ".string", 7) == 0)
+        return TRUE;
+    if(strncmp(pLINE->line, ".extern", 7) == 0)
+        return TRUE;
+    else
+        return FALSE;
+}
+
+/** 
+ * Check if current line is .entry directive
+ */
+int
+is_entry(line_t *pLINE)
+{
+    char tmp[LINE_LEN];
+    char *entry;
+    strcpy(tmp, pLINE->line);
+    strtok(tmp, " \t");
+    if(strcmp_hash(tmp, ".entry"))
+    {
+        entry = strtok(NULL, " \t \0");
+        if(is_name(entry))
+        ;
+    }
+    return FALSE;
+
 }

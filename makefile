@@ -14,6 +14,9 @@ myprog: $(obj)
 pass.o: pass.c
 		$(CC) -o $@ -c $^ $(LDFLAGS)
 
+files.o: files.c
+		$(CC) -o $@ -c $^ $(LDFLAGS)
+
 macro.o: macro.c
 		$(CC) -o $@ -c $^ $(LDFLAGS)
 
