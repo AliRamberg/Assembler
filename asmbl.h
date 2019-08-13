@@ -56,15 +56,16 @@ enum BOOL {FALSE, TRUE};
 struct WORD_T
 {
     int type;
-    char *name;
-    signed int reg:14;
+    int src_addmod;     /* source word addressing mode */
+    char *src_name;     /* if the source is a label or a macro */
+    char *src_index;    /* if the source is of addmode 2 and needs an index */
+    char *dst_name;     /* if the destination is a label or a macro */
+    char *dst_index;    /* if the destination is of addmode 2 and needs an index */
+    int dst_addmod;     /* destination word addressing mode */
+    char *name;         /* Actual used name to be searched in the list or outputed to file */
+    signed int reg:14;  /* actual word */
 };
 typedef struct WORD_T WORD_T;
-
-
-int line_num; /* current line number */
-int IC;  /* Instruction Counter */
-int DC; /* Data Conter */
 
 /* Instructions and Data binary words */
 WORD_T instruction_arr[INITIAL_IC_ARR];

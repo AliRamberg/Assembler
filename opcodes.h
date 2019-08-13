@@ -21,7 +21,7 @@
 int check_operands(char *line, unsigned inst);
 int get_addmode(char *operand, unsigned code, int mode, int *abs, char *macro_name);
 int addmod_sz(int mode);
-int get_are(int mode, int local);
+int get_are(int mode);
 
 /**
  * Enumeration of all the addressing modes available

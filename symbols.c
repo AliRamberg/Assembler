@@ -2,7 +2,10 @@
 #include <string.h>
 #include "misc.h"
 #include "symbols.h"
+#include "opcodes.h"
 #include "asmbl.h"
+#include "globals.h"
+
 
 symbol_t *init_macro();
 symbol_t *init_data(enum SYMBOL type);
@@ -43,7 +46,7 @@ init_symbol(enum SYMBOL type)
 void
 free_symbol(symbol_t *sym)
 {
-    if(!sym)
+    if(!sym->symbol)
         return;
     switch (sym->type)
     {
@@ -65,6 +68,10 @@ free_symbol(symbol_t *sym)
         SAFE_FREE(sym)
         return;
     case SYMBOL_CODE:
+        SAFE_FREE(sym->symbol->instruction->source->op)
+        SAFE_FREE(sym->symbol->instruction->destination->op)
+        SAFE_FREE(sym->symbol->instruction->source)
+        SAFE_FREE(sym->symbol->instruction->destination)
         SAFE_FREE(sym->symbol->instruction)
         SAFE_FREE(sym->symbol)
         SAFE_FREE(sym)
@@ -153,15 +160,27 @@ init_code()
 {
     symbol_t *data_symbol = (symbol_t *)malloc(sizeof(symbol_t));
     union symbol_un *symbol = (union symbol_un *)malloc(sizeof(union symbol_un));
+    struct operand *source = (struct operand *)malloc(sizeof(struct operand));
+    struct operand *destination = (struct operand *)malloc(sizeof(struct operand));
+    union op *dst_op = (union op *)malloc(sizeof(union op *));
+    union op *src_op = (union op *)malloc(sizeof(union op *));
     instruction_t *code = (instruction_t *)malloc(sizeof(instruction_t));
 
-    if(!data_symbol || !symbol || !code)
+    if(!data_symbol || !symbol || !code || !source || !destination || !src_op || !dst_op)
     {
         SAFE_FREE(data_symbol)
         SAFE_FREE(symbol)
         SAFE_FREE(code)
+        SAFE_FREE(source)
+        SAFE_FREE(destination)
+        SAFE_FREE(dst_op)
+        SAFE_FREE(src_op)
         return NULL;
     }
+    destination->op = dst_op;
+    source->op = src_op;
+    code->source = source;
+    code->destination = destination;
     data_symbol->symbol = symbol;
     symbol->instruction = code;
     return data_symbol;
@@ -206,18 +225,19 @@ next_node(symbol_node **list, char *name, int value, enum SYMBOL property)
 }
 
 int
-search_list(const symbol_node *list, char *name, int *value)
+search_list(const symbol_node *list, char *name, int *value, int *property)
 {
     symbol_node **tmp = (symbol_node **) &list;
-    if(!list)
-        return 0;
     while((*tmp))
     {
         if(strcmp_hash((*tmp)->name, name))
+        {
+            property = &(*tmp)->property;
             return (*tmp)->value;
+        }
         (*tmp) = (*tmp)->next;
     }
-    return 0;
+    return ERROR;
 }
 
 

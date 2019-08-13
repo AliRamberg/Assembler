@@ -6,6 +6,8 @@
 #include "misc.h"
 #include "symbols.h"
 #include "opcodes.h"
+#include "globals.h"
+
 
 char *strsub(char *, size_t , char *);
 char *is_label(char *);
@@ -222,7 +224,6 @@ is_instruction(line_t *pLINE)
         char macro_name[MACRO_LEN];
         symbol_t *instruction = init_symbol(SYMBOL_CODE);
         int op = check_operands(pLINE->line, code);
-        int are_src, are_dst;
         if(op == ERROR || !instruction)
         {
             SAFE_FREE(pst)
@@ -231,55 +232,120 @@ is_instruction(line_t *pLINE)
         }
 
         line = clear_str(pLINE->line);
-        strtok(line, "\t ");
+        strtok(line, "\t ");    /* remove the opcode */
         operand = strtok(NULL, "\t ,");
         if(operand)
         {
             operand2 = operand + strlen(operand) + 1;
             while(isspace(*operand2) || *operand2 == ',') operand2++;
         }
-
+        /**************************************************************************/
         if (op > 1)
         {
-            /* Get the correct address mode for the destination operand */
-            addmod = get_addmode(operand2, code, SRC, &abs, &*macro_name);
+            char name[MACRO_LEN];
+            char index[MACRO_LEN];
+            /* Get the correct address mode for the source operand */
+            addmod = get_addmode(operand, code, SRC, &abs, &*macro_name);
+
             if(addmod == ERROR)
             {
                 SAFE_FREE(pst)
                 return FALSE;
             }
-            instruction->symbol->instruction->addmod_src = conv_addmod(addmod);
-            if(abs)
-                are_src = get_are(addmod, TRUE);
-            else
+
+            switch (addmod)
             {
-                are_src = get_are(addmod, FALSE);
-                instruction->symbol->instruction->source = macro_name;
+            case ADDMODE_3:
+                /* Registry operand */
+                instruction->symbol->instruction->source->addmod = ADDMODE_3;
+                instruction->symbol->instruction->source->op->name = operand;
+                instruction->symbol->instruction->source->are = ABSOLUTE;
+                break;
+            case ADDMODE_2:
+                strcpy(name, strtok(operand, "["));
+                strcpy(index, strtok(NULL, "]"));
+                instruction->symbol->instruction->source->addmod = ADDMODE_2;
+                instruction->symbol->instruction->source->op->name = name;
+                if(is_num(index))
+                    instruction->symbol->instruction->source->index = atoi(index);
+                else
+                    instruction->symbol->instruction->source->str_index = index;
+                instruction->symbol->instruction->source->are = -1;
+                break;
+            case ADDMODE_1:
+                instruction->symbol->instruction->source->op->name = operand;
+                instruction->symbol->instruction->source->addmod = ADDMODE_1;
+                instruction->symbol->instruction->source->are = -1;
+                break;
+            case ADDMODE_0:
+                instruction->symbol->instruction->source->addmod = ADDMODE_0;
+                operand++; /* Skip the '#' character */
+                if((is_num(operand) != _12BIT_MIN))
+                    instruction->symbol->instruction->source->op->value = atoi(operand);
+                else
+                    instruction->symbol->instruction->source->op->name = operand;
+                instruction->symbol->instruction->source->are = ABSOLUTE;
+                break;
+            default:
+                break;
             }
+
             
-            instruction->symbol->instruction->are_src = are_src;
             sz += addmod_sz(addmod);
         }
         if(op > 0)
         {
-            /* Get the correct address mode for the source operand */
-            addmod = get_addmode(operand, code, DST, &abs, &*macro_name);
+            char name[MACRO_LEN];
+            char index[MACRO_LEN];
+            /* Get the correct address mode for the destination operand */
+            addmod = get_addmode(operand2, code, SRC, &abs, &*macro_name);
+
             if(addmod == ERROR)
             {
                 SAFE_FREE(pst)
                 return FALSE;
             }
-            instruction->symbol->instruction->addmod_dst = conv_addmod(addmod);
-            if(abs)
-                are_dst = get_are(addmod, TRUE);
-            else
+
+            switch (addmod)
             {
-                are_dst = get_are(addmod, FALSE);
-                instruction->symbol->instruction->destination = macro_name;
+            case ADDMODE_3:
+                /* Registry operand */
+                instruction->symbol->instruction->destination->addmod = ADDMODE_3;
+                instruction->symbol->instruction->destination->op->name = operand2;
+                instruction->symbol->instruction->destination->are = ABSOLUTE;
+                break;
+            case ADDMODE_2:
+                strcpy(name, strtok(operand2, "["));
+                strcpy(index, strtok(NULL, "]"));
+                instruction->symbol->instruction->destination->addmod = ADDMODE_2;
+                instruction->symbol->instruction->destination->op->name = name;
+                if(is_num(index))
+                    instruction->symbol->instruction->destination->index = atoi(index);
+                else
+                    instruction->symbol->instruction->destination->str_index = index;
+                instruction->symbol->instruction->destination->are = -1;
+                break;
+            case ADDMODE_1:
+                instruction->symbol->instruction->destination->op->name = operand2;
+                instruction->symbol->instruction->destination->addmod = ADDMODE_1;
+                instruction->symbol->instruction->destination->are = -1;
+                break;
+            case ADDMODE_0:
+                instruction->symbol->instruction->destination->addmod = ADDMODE_0;
+                operand2++; /* Skip the '#' character */
+                if((is_num(operand2) != _12BIT_MIN))
+                    instruction->symbol->instruction->destination->op->value = atoi(operand2);
+                else
+                    instruction->symbol->instruction->destination->op->name = operand2;
+                instruction->symbol->instruction->destination->are = ABSOLUTE;
+            
+            default:
+                break;
             }
 
-            instruction->symbol->instruction->are_dst = are_dst;
+            
             sz += addmod_sz(addmod);
+            
         }
 
 

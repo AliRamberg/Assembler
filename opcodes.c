@@ -1,6 +1,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "opcodes.h"
+#include "globals.h"
 
 int num_operands(char *line);
 
@@ -88,7 +89,7 @@ get_addmode(char *operand, unsigned code, int mode, int *abs, char *p_macro)
         *abs = FALSE;
         return ADDMODE_0;
     }
-    else if((sup_mode & ADDMODE_3) && is_register(operand))
+    else if((sup_mode & ADDMODE_3) && (is_register(operand) != ERROR))
     {
         *abs = TRUE;
         return ADDMODE_3;
@@ -135,7 +136,7 @@ addmod_sz(int mode)
 }
 
 int
-get_are(int mode, int local)
+get_are(int mode)
 {
     switch (mode)
     {
@@ -144,13 +145,9 @@ get_are(int mode, int local)
     case ADDMODE_3:
         return ABSOLUTE;
     case ADDMODE_1:
-        if(local)
-            return RELOCATABLE;
-        return EXTERNAL;
+        return RELOCATABLE | EXTERNAL;
     case ADDMODE_2:
-        if(local)
-            return RELOCATABLE;
-        return EXTERNAL;
+        return RELOCATABLE | EXTERNAL;
     default:
         break;
     }

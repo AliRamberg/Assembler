@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "files.h"
+#include "opcodes.h"
+#include "asmbl.h"
+#include "globals.h"
+
 
 /**
  * Validates the file extention is .as
@@ -9,6 +13,8 @@ int
 validate_filename(const char *filename)
 {
     char* ext, file[30];
+    if(!filename)
+        return ERROR;
     strcpy(file, filename);
     strtok(file, ".");
     ext = strtok(NULL, "\0");
@@ -23,6 +29,9 @@ validate_filename(const char *filename)
 FILE *
 create_ext(char *filename, char *ext)
 {
+    if(!filename || !ext)
+        return NULL;
+    strtok(filename, ".");
     strcat(filename, ext);
     return fopen(filename, "w");
 }
@@ -33,8 +42,10 @@ create_ext(char *filename, char *ext)
 void
 convertbits(FILE * const filename, int bin)
 {
-    unsigned mask = 2;
+    unsigned mask = 4;
     char sym;
+    if(!filename)
+        return;
     while(bin)
     {
         sym = bin & mask;
@@ -55,8 +66,8 @@ convertbits(FILE * const filename, int bin)
         default:
             break;
         }
-    }
     bin >>= 2;
+    }
 }
 
 /**
@@ -65,14 +76,16 @@ convertbits(FILE * const filename, int bin)
 void
 fout(FILE *const filename)
 {
-    size_t i;
+    int i;
+    if(!filename)
+        return;
     for (i = 0; i < IC; i++)
     {
-        fprintf(filename, "%0ld\t", i);
+        fprintf(filename, "%04d\t", i+100);
         convertbits(filename, instruction_arr[i].reg);
         fprintf(filename, "\n");
     }
-    
+    fclose(filename);
 }
 
 void
@@ -80,6 +93,8 @@ fout_entext(char *filename, FILE *pext, FILE *pent)
 {
     size_t i;
     int ext = FALSE, ent = FALSE;
+    if(!filename || !pext || !pent)
+        return;
     for (i = 0; i < IC; i++)
     {
         if(instruction_arr[i].type == SYMBOL_EXTERNAL)
@@ -97,6 +112,7 @@ fout_entext(char *filename, FILE *pext, FILE *pent)
         remove(strcat(filename, ".ext"));
     if(!ent)
         remove(strcat(filename, ".ent"));
-    
+    fclose(pext);
+    fclose(pent);
     return;
 }

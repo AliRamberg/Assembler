@@ -5,6 +5,7 @@
 #include "asmbl.h"
 #include "misc.h"
 #include "line.h"
+#include "globals.h"
 
 
 
@@ -51,11 +52,9 @@ first_pass(FILE *fptr, symbol_node **list)
         result = encode(parse, pLINE, list);
 
         /* Update the value of all the data symbols by IC+100 */
-        update_data(*list);
         
-        if(pLINE->parsed)
-            free_symbol(pLINE->parsed);
     }
+    update_data(*list);
     LINE_FREE(pLINE);
     return result;
 }
@@ -95,9 +94,9 @@ second_pass(FILE *fptr, symbol_node **list)
         {
             continue;
         }
+        
         /* encode_operands(pLINE,  ) */
     }
-
 
     free_list(*&list);
     return 0;

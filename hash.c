@@ -9,7 +9,8 @@ hash(char *str)
 {
     unsigned long hash = 0;
     int c;
-
+    if(!str)
+        return 0;
     while((c = *str++))
         hash = c + (hash << 6) + (hash << 16) - hash;
     

@@ -11,6 +11,9 @@ LDFLAGS = -g -Wall -ansi -pedantic
 myprog: $(obj)
 		$(CC) -o $@ $^ $(LDFLAGS)
 
+globals.o: globals.c
+		$(CC) -o $@ -c $^ $(LDFLAGS)
+
 pass.o: pass.c
 		$(CC) -o $@ -c $^ $(LDFLAGS)
 
@@ -46,4 +49,4 @@ asmbl.o: asmbl.c
 
 .PHONY: clean
 clean:
-		rm -f *.o myprog
+		rm -f *.o myprog *.ob *.ext *.ent *.gch

@@ -61,7 +61,7 @@ is_name(char * s)
 int
 is_reserved(char *s)
 {
-    return (is_opcode(s) != -1) || is_register(s);
+    return (is_opcode(s) != -1) || (is_register(s) != -1);
 }
 
 
@@ -77,8 +77,8 @@ is_register(char *s)
 
     for(i = 0; i < REGISTER_NUM; i++)
         if(strcmp_hash(s, reserved_registers[i]))
-                return 1;
-    return 0;
+                return i;
+    return -1;
 }
 
 
@@ -106,9 +106,10 @@ char *
 trim_white(char *str)
 {
     char *pos;
-    int len = strlen(str);
-    if(len == 0)
-        return str;
+    int len;
+    if(!str)
+        return NULL;
+    len = strlen(str);
     pos = str + len - 1;
     while(pos >= str && isspace(*pos))
     {
@@ -123,7 +124,7 @@ char *
 clear_str(char *str)
 {   
     char *ch = str;
-    while(isspace(*ch++));
+    while(ch && isspace(*ch++));
     ch = trim_white(--ch);
     return ch;
 }
