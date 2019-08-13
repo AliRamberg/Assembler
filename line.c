@@ -240,6 +240,9 @@ is_instruction(line_t *pLINE)
             while(isspace(*operand2) || *operand2 == ',') operand2++;
         }
         /**************************************************************************/
+        /**
+         * Source Operand parsing and analayzing
+         */
         if (op > 1)
         {
             char name[MACRO_LEN];
@@ -293,12 +296,15 @@ is_instruction(line_t *pLINE)
             
             sz += addmod_sz(addmod);
         }
+        /**
+         * Destination Operand parsing and analayzing
+         */
         if(op > 0)
         {
             char name[MACRO_LEN];
             char index[MACRO_LEN];
             /* Get the correct address mode for the destination operand */
-            addmod = get_addmode(operand2, code, SRC, &abs, &*macro_name);
+            addmod = get_addmode(operand2, code, DST, &abs, &*macro_name);
 
             if(addmod == ERROR)
             {
@@ -525,11 +531,11 @@ skip_lines_sec_pass(line_t *pLINE)
         /* pLINE->line += strlen(pLINE->label) + 1; */
         pLINE->line = strtok(NULL, "\0");
     }
-    if(strncmp(pLINE->line, ".data", 5) == 0)
+    if(strncmp(pLINE->line, ".data", strlen(".data")) == 0)
         return TRUE;
-    if(strncmp(pLINE->line, ".string", 7) == 0)
+    if(strncmp(pLINE->line, ".string", strlen(".string")) == 0)
         return TRUE;
-    if(strncmp(pLINE->line, ".extern", 7) == 0)
+    if(strncmp(pLINE->line, ".extern", strlen(".extern")) == 0)
         return TRUE;
     else
         return FALSE;
@@ -539,7 +545,7 @@ skip_lines_sec_pass(line_t *pLINE)
  * Check if current line is .entry directive
  */
 int
-is_entry(line_t *pLINE)
+is_entry(line_t *pLINE, symbol_node *list)
 {
     char tmp[LINE_LEN];
     char *entry;
@@ -549,8 +555,24 @@ is_entry(line_t *pLINE)
     {
         entry = strtok(NULL, " \t \0");
         if(is_name(entry))
-        ;
+            return entry_encode(entry, pLINE, list);
+        
     }
     return FALSE;
 
+}
+
+int
+fill_empty_words(symbol_node *list)
+{
+    int i;
+    for (i = 0; i < IC; i++)
+    {
+        if (instruction_arr[i].)
+        {
+            /* code */
+        }
+        
+    }
+    
 }

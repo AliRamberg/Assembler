@@ -88,7 +88,7 @@ second_pass(FILE *fptr, symbol_node **list)
         line_num++;
 
         clear_str(pLINE->line);
-        if(skip_lines_sec_pass(pLINE))
+        if(skipable_line(pLINE->line) || skip_lines_sec_pass(pLINE))
             continue;
         if((is_entry(pLINE)))
         {

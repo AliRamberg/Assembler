@@ -1,1 +1,3 @@
-mov r3,r2
+lea label, r2
+
+label: .data 22

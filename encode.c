@@ -233,7 +233,20 @@ encode_inst(line_t *pLINE, symbol_node **list)
     dst_are = pLINE->parsed->symbol->instruction->destination->are;
 
     /* INSTRUCTION FIRST WORD */
-    instruction_arr[IC].reg = (pLINE->parsed->symbol->instruction->opcode << 6) | (src_addmode << 4) | (dst_addmode << 2);
+    instruction_arr[IC].reg = (pLINE->parsed->symbol->instruction->opcode << 6) | (conv_addmod(src_addmode) << 4) | (conv_addmod(dst_addmode) << 2);
+
+    printf("%d\n", instruction_arr[IC].reg);
+
+    /* The source and the destination are registers */
+    if ((is_register(src_name) != ERROR) && (is_register(dst_name)) != ERROR)
+    {
+        instruction_arr[IC + 1].reg =  reg_address(src_name, TRUE) | reg_address(dst_name, FALSE);
+        printf("%d\n", instruction_arr[IC + 1].reg);
+        IC += 2;
+        return;
+    }
+    
+
 
     /* SRC WORD */
     if(pLINE->len > 1)

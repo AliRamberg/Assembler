@@ -42,32 +42,35 @@ create_ext(char *filename, char *ext)
 void
 convertbits(FILE * const filename, int bin)
 {
-    unsigned mask = 4;
-    char sym;
+    int mask = 3, i = 0, sym;
+    char symbols[7];
     if(!filename)
         return;
-    while(bin)
+    while(i < 7)
     {
         sym = bin & mask;
         switch (sym)
         {
         case 0:
-            fprintf(filename, "%c", '*');
+            symbols[i] = '*';
             break;
         case 1:
-            fprintf(filename, "%c", '#');
+            symbols[i] = '#';
             break;
         case 2:
-            fprintf(filename, "%c", '%');
+            symbols[i] = '%';
             break;
         case 3:
-            fprintf(filename, "%c", '!');
+            symbols[i] = '!';
             break;
         default:
             break;
         }
+    i++;
     bin >>= 2;
     }
+    for(i = 0; i < 7; i++)
+        fprintf(filename, "%c", symbols[6 - i]);
 }
 
 /**
@@ -81,7 +84,7 @@ fout(FILE *const filename)
         return;
     for (i = 0; i < IC; i++)
     {
-        fprintf(filename, "%04d\t", i+100);
+        fprintf(filename, "%04d\t", i + 100);
         convertbits(filename, instruction_arr[i].reg);
         fprintf(filename, "\n");
     }
