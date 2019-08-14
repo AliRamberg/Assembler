@@ -165,11 +165,11 @@ build_absolute_word(symbol_node *list, char *name, int opvalue, int bSRC, int in
         if (bSRC)
         {
             /* SRC IS REGISTER */
-            instruction_arr[index].reg = reg_address(name, TRUE);
+            instruction_arr[index].reg = reg_address(name, TRUE) | ABSOLUTE;
             return;
         }
         /* DST IS REGISTER */
-        instruction_arr[index].reg = reg_address(name, FALSE);
+        instruction_arr[index].reg = reg_address(name, FALSE) | ABSOLUTE;
         return;
     }
     if((search_list(list, name, &value, NULL) != ERROR))
@@ -191,7 +191,7 @@ void
 build_relocatable_word(symbol_node *list, char *name, int index)
 {
     int value, property;
-    value = search_list(list, name, &value, &property);
+    search_list(list, name, &value, &property);
     if((value != ERROR) && property != SYMBOL_EXTERNAL)
     {
         instruction_arr[index].reg = (value << 2) | RELOCATABLE;
@@ -290,6 +290,7 @@ encode_inst(line_t *pLINE, symbol_node **list)
         else if((search_list(*list, src_name, &value, &property) != ERROR) && (property & SYMBOL_MACRO))
             build_relocatable_word(*list, src_name, IC + i);
         /* everything else will get built on the second pass */
+        printf("%d\n", instruction_arr[IC + i].reg);
         i++;
     }
     /* DST WORD */
@@ -307,6 +308,7 @@ encode_inst(line_t *pLINE, symbol_node **list)
             build_relocatable_word(*list, dst_name, IC + i);
         /* everything else will get built on the second pass */
         
+        printf("%d\n", instruction_arr[IC + i].reg);
     }
 
     instruction_arr[IC].len = pLINE->len;
@@ -315,10 +317,10 @@ encode_inst(line_t *pLINE, symbol_node **list)
 }
 
 
-int
+void
 complete_encoding(symbol_node *list, line_t *pLINE, int oIC)
 {
-    int i;
+    int i, property;
     char *src, *dst;
     
     
@@ -327,9 +329,9 @@ complete_encoding(symbol_node *list, line_t *pLINE, int oIC)
     {
         src = instruction_arr[i].src_name;
         dst = instruction_arr[i].dst_name;
-        if (!strcmp_hash(dst, ""))
+        if (!strcmp_hash(dst, EMPTY_STRING) && !(is_register(dst) != ERROR) && search_list(list, dst, 0, &property) && property != SYMBOL_MACRO)
         {
-            if (!strcmp_hash(src, ""))
+            if (!strcmp_hash(src, EMPTY_STRING) && search_list(list, src, 0, &property) && property != SYMBOL_MACRO && !(is_register(src) != ERROR))
             {
                 build_relocatable_word(list, src, i + 1);
                 i++;
@@ -338,5 +340,5 @@ complete_encoding(symbol_node *list, line_t *pLINE, int oIC)
             i++;
         }
     }
-    return TRUE;
+    return;
 }

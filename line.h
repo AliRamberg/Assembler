@@ -5,7 +5,7 @@
 
 #define LINE_LEN 80       /* Line maximum length */
 #define LABEL_LEN 31      /* Label maximum length */
-#define MACRO_LEN 20      /* macro maximum length - length of ".define" */
+#define MACRO_LEN 20      /* macro maximum length - length of ".define" or ".data" */
 
 typedef struct line_st
 {
@@ -37,13 +37,26 @@ int parse_line(line_t *);
  * Encode the current line to the symbol list and the DC/IC arrays
  */
 int encode(enum PARSE parse, line_t *pLINE, symbol_node **list);
+
+/**
+ * Special encoding for entry statements
+ */
 int entry_encode(char *entry, line_t *pLINE, symbol_node **list);
+
+/**
+ * Final encoding for the second pass
+ */
+void complete_encoding(symbol_node *list, line_t *pLINE, int oIC);
+
 /**
  * Line that is commented or that is consists of whitespaces only
  */
 int skipable_line(char *);
 int skip_lines_sec_pass(line_t *pLINE);
+
+/**
+ * Check if line is an entry statement and adds it to the linked list
+ */
 int is_entry(line_t *pLINE, symbol_node *list);
-int complete_encoding(symbol_node *list, line_t *pLINE, int oIC);
 
 #endif

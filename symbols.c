@@ -198,7 +198,7 @@ next_node(symbol_node **list, char *name, int value, enum SYMBOL property)
     if(!node || !node_name)
         return NULL;
 
-    node_name = name;
+    strcpy(node_name, name);
     node->name = node_name;
     node->value = value;
     node->property = property;
@@ -232,8 +232,10 @@ search_list(const symbol_node *list, char *name, int *value, int *property)
     {
         if(strcmp_hash((*tmp)->name, name))
         {
-            property = &(*tmp)->property;
-            value = &(*tmp)->value;
+            if(property)
+                *property = (*tmp)->property;
+            if(value)
+                *value = (*tmp)->value;
             return (*tmp)->value;
         }
         (*tmp) = (*tmp)->next;
@@ -249,6 +251,9 @@ free_list(symbol_node **list)
     symbol_node *tmp = *list;
     while(tmp)
     {
+        tmp->property = 0;
+        tmp->value = 0;
+        
         *list = (*list)->next;
         if(tmp->name)
             SAFE_FREE(tmp->name)
