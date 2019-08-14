@@ -1,13 +1,16 @@
 #include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 #include "asmbl.h"
 #include "symbols.h"
 #include "misc.h"
+#include "line.h"
 #include "line.h"
 #include "opcodes.h"
 #include "globals.h"
 
 
-void build_absolute_word(symbol_node *list, char *name, int bSRC, int index);
+void build_absolute_word(symbol_node *list, char *name, int opvalue, int bSRC, int index);
 void build_relocatable_word(symbol_node *list, char *name, int index);
 void build_external_word(symbol_node *list, char *name, int index);
 int reg_address(char *reg, int src);
@@ -104,7 +107,9 @@ encode(enum PARSE parse, line_t *pLINE, symbol_node **list)
     case (PARSED_LABEL | PARSED_INSTRUCTION):
         if(!(search_list(*list, pLINE->label, NULL, NULL) != ERROR))
         {
-            next_node(*&list, pLINE->label, IC + 100, SYMBOL_CODE);
+            char *tmp = (char *)malloc(sizeof(char)*LABEL_LEN);
+            strcpy(tmp, pLINE->label);
+            next_node(*&list, tmp, IC + 100, SYMBOL_CODE);
         }
         else
         {
@@ -141,16 +146,21 @@ int
 entry_encode(char *entry, line_t *pLINE, symbol_node **list)
 {
     next_node(*&list, entry, IC + 100, SYMBOL_ENTRY);
-    return 0;
+    return TRUE;
 }
 
 
 
 void
-build_absolute_word(symbol_node *list, char *name, int bSRC, int index)
+build_absolute_word(symbol_node *list, char *name, int opvalue, int bSRC, int index)
 {
     int value;
-    if (is_register(name))
+    if(is_valid(opvalue) && !name)
+    {
+        instruction_arr[index].reg = (opvalue << 2) | ABSOLUTE;
+        return;
+    }
+    if (is_register(name) != ERROR)
     {
         if (bSRC)
         {
@@ -172,7 +182,7 @@ build_absolute_word(symbol_node *list, char *name, int bSRC, int index)
         instruction_arr[index].reg = value << 2;
         return;
     }
-    fprintf(stderr, "Failed to create absolute word\n");
+    ERROR_MSG("Failed to create absolute word")
     return;    
 }
 
@@ -181,12 +191,13 @@ void
 build_relocatable_word(symbol_node *list, char *name, int index)
 {
     int value, property;
-    if((search_list(list, name, &value, &property) != ERROR) && property != SYMBOL_EXTERNAL)
+    value = search_list(list, name, &value, &property);
+    if((value != ERROR) && property != SYMBOL_EXTERNAL)
     {
         instruction_arr[index].reg = (value << 2) | RELOCATABLE;
         return;
     }
-    fprintf(stderr, "Failed to find relocatable symbol\n");
+    ERROR_MSG("Failed to find relocatable symbol")
     return;
 }
 
@@ -200,7 +211,7 @@ build_external_word(symbol_node *list, char *name, int index)
         instruction_arr[index].reg = (value << 2) | EXTERNAL;
         return;
     }
-    fprintf(stderr, "Failed to find external symbol\n");
+    ERROR_MSG("Failed to find external symbol")
     return;
 }
 
@@ -211,7 +222,7 @@ reg_address(char *reg, int src)
     if((regnum = is_register(reg)) == ERROR)
         return ERROR;
     if(src)
-        return (regnum << 4);
+        return (regnum << 5);
     return (regnum << 2);    
 }
 
@@ -219,57 +230,113 @@ void
 encode_inst(line_t *pLINE, symbol_node **list)
 {
     int i = 1, src_addmode, dst_addmode, src_are, dst_are;
+    int src_val, dst_val;
+    
     char *src_name, *dst_name;
-    int property, value;
+    int property, value, opcode, reg;
+    src_name = (char *)calloc(sizeof(char), MACRO_LEN);
+    dst_name = (char *)calloc(sizeof(char), MACRO_LEN);
 
     /* Addressing mode */
     src_addmode = pLINE->parsed->symbol->instruction->source->addmod;
     dst_addmode = pLINE->parsed->symbol->instruction->destination->addmod;
     /* label name or register */
-    src_name = pLINE->parsed->symbol->instruction->source->op->name;
-    dst_name = pLINE->parsed->symbol->instruction->destination->op->name;
+    if (!is_valid(pLINE->parsed->symbol->instruction->source->op->value))
+    {
+        strcpy(src_name, pLINE->parsed->symbol->instruction->source->op->name);
+    }
+    if (!is_valid(pLINE->parsed->symbol->instruction->destination->op->value))
+    {
+        strcpy(dst_name, pLINE->parsed->symbol->instruction->destination->op->name);
+    }    
+
+    /* numeric values */
+    src_val = pLINE->parsed->symbol->instruction->source->op->value;
+    dst_val = pLINE->parsed->symbol->instruction->destination->op->value;
+
     /* are property */
     src_are = pLINE->parsed->symbol->instruction->source->are;
     dst_are = pLINE->parsed->symbol->instruction->destination->are;
 
+    opcode = pLINE->parsed->symbol->instruction->opcode << 6;
+    reg = opcode | (conv_addmod(src_addmode) << 4) | (conv_addmod(dst_addmode) << 2);
     /* INSTRUCTION FIRST WORD */
-    instruction_arr[IC].reg = (pLINE->parsed->symbol->instruction->opcode << 6) | (conv_addmod(src_addmode) << 4) | (conv_addmod(dst_addmode) << 2);
-
+    instruction_arr[IC].reg = reg;
+    
+    instruction_arr[IC].src_name = src_name;
+    instruction_arr[IC].dst_name = dst_name;
+    
     printf("%d\n", instruction_arr[IC].reg);
 
     /* The source and the destination are registers */
-    if ((is_register(src_name) != ERROR) && (is_register(dst_name)) != ERROR)
+    if ((is_register(src_name) != ERROR) && (is_register(dst_name) != ERROR))
     {
         instruction_arr[IC + 1].reg =  reg_address(src_name, TRUE) | reg_address(dst_name, FALSE);
         printf("%d\n", instruction_arr[IC + 1].reg);
         IC += 2;
         return;
     }
-    
-
 
     /* SRC WORD */
-    if(pLINE->len > 1)
+    if(pLINE->len > 2)
     {
         if(src_are == ABSOLUTE)
-            build_absolute_word(*list, src_name, TRUE, IC + i);
-        else if((search_list(*list, src_name, &value, &property) != ERROR) && (property & (SYMBOL_DATA_NUMBERS | SYMBOL_DATA_STRING)))
+        {
+            if(!*src_name)
+                build_absolute_word(*list, NULL, src_val, TRUE, IC + i);
+            else
+                build_absolute_word(*list, src_name, 0, TRUE, IC + i);
+        }
+        else if((search_list(*list, src_name, &value, &property) != ERROR) && (property & SYMBOL_MACRO))
             build_relocatable_word(*list, src_name, IC + i);
-        else
-            build_external_word(*list, src_name, IC + i);
+        /* everything else will get built on the second pass */
         i++;
     }
     /* DST WORD */
-    if(pLINE->len > 0)
+    if(pLINE->len > 1)
     {
         if(dst_are == ABSOLUTE)
-            build_absolute_word(*list, src_name, FALSE, IC + i);
-        else if((search_list(*list, src_name, &value, &property) != ERROR) && (property & (SYMBOL_DATA_NUMBERS | SYMBOL_DATA_STRING)))
+        {
+            if(!*dst_name)
+                build_absolute_word(*list, NULL, dst_val, FALSE, IC + i);
+            else
+                build_absolute_word(*list, dst_name, 0, FALSE, IC + i);
+        }
+        /* only macros */
+        else if((search_list(*list, src_name, &value, &property) != ERROR) && (property & SYMBOL_MACRO))
             build_relocatable_word(*list, dst_name, IC + i);
-        else
-            build_external_word(*list, dst_name, IC + i);
+        /* everything else will get built on the second pass */
+        
     }
 
+    instruction_arr[IC].len = pLINE->len;
     IC += pLINE->len;
     return;
+}
+
+
+int
+complete_encoding(symbol_node *list, line_t *pLINE, int oIC)
+{
+    int i;
+    char *src, *dst;
+    
+    
+
+    for(i = 0; i < oIC; i++)
+    {
+        src = instruction_arr[i].src_name;
+        dst = instruction_arr[i].dst_name;
+        if (!strcmp_hash(dst, ""))
+        {
+            if (!strcmp_hash(src, ""))
+            {
+                build_relocatable_word(list, src, i + 1);
+                i++;
+            }
+            build_relocatable_word(list, dst, i + 1);
+            i++;
+        }
+    }
+    return TRUE;
 }

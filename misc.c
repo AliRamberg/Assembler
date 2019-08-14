@@ -30,7 +30,10 @@ int
 is_num(char *str)
 {
     char *ch;
-    int num = (int) strtol(str, &ch,DECIMAL_BASE);
+    int num;
+    if(!*str)
+        return _12BIT_MIN;
+    num = (int) strtol(str, &ch,DECIMAL_BASE);
     
     if((*ch == '\0') && is_valid(num))
         return num;

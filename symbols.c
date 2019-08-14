@@ -233,6 +233,7 @@ search_list(const symbol_node *list, char *name, int *value, int *property)
         if(strcmp_hash((*tmp)->name, name))
         {
             property = &(*tmp)->property;
+            value = &(*tmp)->value;
             return (*tmp)->value;
         }
         (*tmp) = (*tmp)->next;

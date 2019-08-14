@@ -61,7 +61,7 @@ first_pass(FILE *fptr, symbol_node **list)
 
 
 int
-second_pass(FILE *fptr, symbol_node **list)
+second_pass(FILE *fptr, symbol_node **list, int oIC)
 {
     char *line = (char *)malloc(sizeof(char)*LINE_LEN);
     line_t *pLINE = (line_t *)malloc(sizeof(line_t));;
@@ -87,14 +87,12 @@ second_pass(FILE *fptr, symbol_node **list)
 
         line_num++;
 
-        clear_str(pLINE->line);
+        pLINE->line = clear_str(pLINE->line);
         if(skipable_line(pLINE->line) || skip_lines_sec_pass(pLINE))
             continue;
-        if((is_entry(pLINE)))
-        {
+        if((is_entry(pLINE, *list)))
             continue;
-        }
-        
+        complete_encoding(*list, pLINE, oIC); 
         /* encode_operands(pLINE,  ) */
     }
 

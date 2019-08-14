@@ -43,6 +43,7 @@ int entry_encode(char *entry, line_t *pLINE, symbol_node **list);
  */
 int skipable_line(char *);
 int skip_lines_sec_pass(line_t *pLINE);
-int is_entry(line_t *pLINE);
+int is_entry(line_t *pLINE, symbol_node *list);
+int complete_encoding(symbol_node *list, line_t *pLINE, int oIC);
 
 #endif

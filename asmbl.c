@@ -60,7 +60,7 @@ main(int argc, char const *argv[])
             continue;
         }
         ic = IC;
-        pass_return = second_pass(fptr, &list);
+        pass_return = second_pass(fptr, &list, ic);
         IC = ic;
         if (pass_return)
         {

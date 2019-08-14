@@ -220,10 +220,10 @@ is_instruction(line_t *pLINE)
     if((code = is_opcode(tmp)) != ILLEGAL_INST)
     {
         size_t sz = 1; /* number of words, atleast one for the main instruction */
-        int addmod, abs = ERROR;
+        int addmod, abs = ERROR, opvalue;
         char macro_name[MACRO_LEN];
         symbol_t *instruction = init_symbol(SYMBOL_CODE);
-        int op = check_operands(pLINE->line, code);
+        int op2 = FALSE, op = check_operands(pLINE->line, code);
         if(op == ERROR || !instruction)
         {
             SAFE_FREE(pst)
@@ -232,9 +232,11 @@ is_instruction(line_t *pLINE)
         }
 
         line = clear_str(pLINE->line);
+        if(strstr(line, ","))
+            op2 = TRUE;
         strtok(line, "\t ");    /* remove the opcode */
-        operand = strtok(NULL, "\t ,");
-        if(operand)
+        operand = strtok(NULL, ",");
+        if(op2)
         {
             operand2 = operand + strlen(operand) + 1;
             while(isspace(*operand2) || *operand2 == ',') operand2++;
@@ -283,8 +285,8 @@ is_instruction(line_t *pLINE)
             case ADDMODE_0:
                 instruction->symbol->instruction->source->addmod = ADDMODE_0;
                 operand++; /* Skip the '#' character */
-                if((is_num(operand) != _12BIT_MIN))
-                    instruction->symbol->instruction->source->op->value = atoi(operand);
+                if(((opvalue = is_num(operand)) != _12BIT_MIN))
+                    instruction->symbol->instruction->source->op->value = opvalue;
                 else
                     instruction->symbol->instruction->source->op->name = operand;
                 instruction->symbol->instruction->source->are = ABSOLUTE;
@@ -296,6 +298,7 @@ is_instruction(line_t *pLINE)
             
             sz += addmod_sz(addmod);
         }
+        /************************************************************************************/
         /**
          * Destination Operand parsing and analayzing
          */
@@ -339,8 +342,8 @@ is_instruction(line_t *pLINE)
             case ADDMODE_0:
                 instruction->symbol->instruction->destination->addmod = ADDMODE_0;
                 operand2++; /* Skip the '#' character */
-                if((is_num(operand2) != _12BIT_MIN))
-                    instruction->symbol->instruction->destination->op->value = atoi(operand2);
+                if(((opvalue = is_num(operand2)) != _12BIT_MIN))
+                    instruction->symbol->instruction->destination->op->value = opvalue;
                 else
                     instruction->symbol->instruction->destination->op->name = operand2;
                 instruction->symbol->instruction->destination->are = ABSOLUTE;
@@ -354,6 +357,11 @@ is_instruction(line_t *pLINE)
             
         }
 
+
+        if(instruction->symbol->instruction->destination->addmod == 0)
+            instruction->symbol->instruction->destination->addmod = ADDMODE_0;
+        if(instruction->symbol->instruction->source->addmod == 0)
+            instruction->symbol->instruction->source->addmod = ADDMODE_0;
 
         /* number of words */
         pLINE->len = sz;
@@ -531,11 +539,11 @@ skip_lines_sec_pass(line_t *pLINE)
         /* pLINE->line += strlen(pLINE->label) + 1; */
         pLINE->line = strtok(NULL, "\0");
     }
-    if(strncmp(pLINE->line, ".data", strlen(".data")) == 0)
+    if(strncmp(pLINE->line, ".data", strlen(".data") - 1) == 0)
         return TRUE;
-    if(strncmp(pLINE->line, ".string", strlen(".string")) == 0)
+    if(strncmp(pLINE->line, ".string", strlen(".string") - 1) == 0)
         return TRUE;
-    if(strncmp(pLINE->line, ".extern", strlen(".extern")) == 0)
+    if(strncmp(pLINE->line, ".extern", strlen(".extern") - 1) == 0)
         return TRUE;
     else
         return FALSE;
@@ -555,24 +563,9 @@ is_entry(line_t *pLINE, symbol_node *list)
     {
         entry = strtok(NULL, " \t \0");
         if(is_name(entry))
-            return entry_encode(entry, pLINE, list);
+            return entry_encode(entry, pLINE, &list);
         
     }
     return FALSE;
 
-}
-
-int
-fill_empty_words(symbol_node *list)
-{
-    int i;
-    for (i = 0; i < IC; i++)
-    {
-        if (instruction_arr[i].)
-        {
-            /* code */
-        }
-        
-    }
-    
 }

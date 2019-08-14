@@ -56,6 +56,7 @@ enum BOOL {FALSE, TRUE};
 struct WORD_T
 {
     int type;
+    int len;            /* number of words */
     int src_addmod;     /* source word addressing mode */
     char *src_name;     /* if the source is a label or a macro */
     char *src_index;    /* if the source is of addmode 2 and needs an index */

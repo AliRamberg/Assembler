@@ -86,7 +86,8 @@ get_addmode(char *operand, unsigned code, int mode, int *abs, char *p_macro)
     {
         if(is_num(operand))
             *abs = TRUE;
-        *abs = FALSE;
+        else
+            *abs = FALSE;
         return ADDMODE_0;
     }
     else if((sup_mode & ADDMODE_3) && (is_register(operand) != ERROR))
@@ -94,7 +95,7 @@ get_addmode(char *operand, unsigned code, int mode, int *abs, char *p_macro)
         *abs = TRUE;
         return ADDMODE_3;
     }
-    else if ((sup_mode & ADDMODE_2) && is_name(strtok(tmp, "[")) && (*(tmp + 1) == '['))
+    else if ((sup_mode & ADDMODE_2) && is_name(strtok(tmp, "[")) && (*(tmp + strlen(tmp)+ 1)))
     {
             strcpy(p_macro, tmp);
             macro = strtok(NULL, "]");

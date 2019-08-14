@@ -5,6 +5,7 @@
 #include "asmbl.h"
 #include "globals.h"
 
+void print_bin(FILE *filename, int bin);
 
 /**
  * Validates the file extention is .as
@@ -85,11 +86,34 @@ fout(FILE *const filename)
     for (i = 0; i < IC; i++)
     {
         fprintf(filename, "%04d\t", i + 100);
+        print_bin(filename, (int) instruction_arr[i].reg);
         convertbits(filename, instruction_arr[i].reg);
         fprintf(filename, "\n");
     }
     fclose(filename);
 }
+
+void
+print_bin(FILE *filename, signed bin)
+{
+    int mask = 1, i = 0;
+    int bins[14] = {0};
+    while(i < 14)
+    {
+        if (bin & mask)
+        {
+            bins[i] = 1;
+        }
+        else
+            bins[i] = 0;
+        bin >>= 1;
+        i++;
+    }
+    for(i = 0; i < 14; i++)
+        printf("%d", bins[13-i]);
+    printf("\n");
+}
+
 
 void
 fout_entext(char *filename, FILE *pext, FILE *pent)
