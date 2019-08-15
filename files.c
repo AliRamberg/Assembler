@@ -86,7 +86,7 @@ fout(FILE *const filename)
     for (i = 0; i < IC; i++)
     {
         fprintf(filename, "%04d\t", i + 100);
-        print_bin(filename, instruction_arr[i].reg);
+        print_bin(filename, (int) instruction_arr[i].reg);
         convertbits(filename, instruction_arr[i].reg);
         fprintf(filename, "\n");
     }

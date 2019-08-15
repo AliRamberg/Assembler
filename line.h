@@ -46,7 +46,7 @@ int entry_encode(char *entry, line_t *pLINE, symbol_node **list);
 /**
  * Final encoding for the second pass
  */
-void complete_encoding(symbol_node *list, line_t *pLINE, int oIC);
+void complete_encoding(symbol_node *list, int start, int oIC);
 
 /**
  * Line that is commented or that is consists of whitespaces only

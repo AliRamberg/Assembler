@@ -68,6 +68,7 @@ int
 second_pass(FILE *fptr, symbol_node **list, int oIC)
 {
     char *line = (char *)malloc(sizeof(char)*LINE_LEN);
+    int start = 0;
     line_t *pLINE = (line_t *)malloc(sizeof(line_t));
 
     /* Resetting the instruction counter and the line number */
@@ -104,7 +105,7 @@ second_pass(FILE *fptr, symbol_node **list, int oIC)
             continue;
         
         /* Final encoding of the words in the instructions list */
-        complete_encoding(*list, pLINE, oIC); 
+        complete_encoding(*list, start++, oIC); 
     }
 
     /* Free linked list */

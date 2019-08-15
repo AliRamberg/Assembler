@@ -68,6 +68,8 @@ free_symbol(symbol_t *sym)
         SAFE_FREE(sym)
         return;
     case SYMBOL_CODE:
+        SAFE_FREE(sym->symbol->instruction->source->op->name)
+        SAFE_FREE(sym->symbol->instruction->destination->op->name)
         SAFE_FREE(sym->symbol->instruction->source->op)
         SAFE_FREE(sym->symbol->instruction->destination->op)
         SAFE_FREE(sym->symbol->instruction->source)
@@ -177,6 +179,8 @@ init_code()
         SAFE_FREE(src_op)
         return NULL;
     }
+    src_op->name = NULL;
+    dst_op->name = NULL;
     destination->op = dst_op;
     source->op = src_op;
     code->source = source;
@@ -190,10 +194,13 @@ init_code()
 symbol_node *
 next_node(symbol_node **list, char *name, int value, enum SYMBOL property)
 {
-    symbol_node *tmp = *list;
+    char *node_name;
+    symbol_node *tmp, *node;
 
-    symbol_node *node = (symbol_node *)malloc(sizeof(symbol_node));
-    char *node_name = (char *)malloc(sizeof(char)*strlen(name));
+    node = (symbol_node *)calloc(sizeof(symbol_node), 1);
+    tmp = *list;
+
+    node_name = (char *)malloc(sizeof(char)*strlen(name));
 
     if(!node || !node_name)
         return NULL;
@@ -227,10 +234,13 @@ next_node(symbol_node **list, char *name, int value, enum SYMBOL property)
 int
 search_list(const symbol_node *list, char *name, int *value, int *property)
 {
+    char s[LINE_LEN];
     symbol_node **tmp = (symbol_node **) &list;
+    strcpy(s, name);
+
     while((*tmp))
     {
-        if(strcmp_hash((*tmp)->name, name))
+        if(strcmp_hash((*tmp)->name, s))
         {
             if(property)
                 *property = (*tmp)->property;

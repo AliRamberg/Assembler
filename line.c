@@ -271,16 +271,16 @@ is_instruction(line_t *pLINE)
                 strcpy(index, strtok(NULL, "]"));
                 instruction->symbol->instruction->source->addmod = ADDMODE_2;
                 instruction->symbol->instruction->source->op->name = name;
-                if(is_num(index))
+                if(is_num(index) != _12BIT_MIN)
                     instruction->symbol->instruction->source->index = atoi(index);
                 else
                     instruction->symbol->instruction->source->str_index = index;
-                instruction->symbol->instruction->source->are = -1;
+                instruction->symbol->instruction->source->are = 9999;
                 break;
             case ADDMODE_1:
                 instruction->symbol->instruction->source->op->name = operand;
                 instruction->symbol->instruction->source->addmod = ADDMODE_1;
-                instruction->symbol->instruction->source->are = -1;
+                instruction->symbol->instruction->source->are = 9999;
                 break;
             case ADDMODE_0:
                 instruction->symbol->instruction->source->addmod = ADDMODE_0;
@@ -304,8 +304,11 @@ is_instruction(line_t *pLINE)
          */
         if(op > 0)
         {
-            char name[MACRO_LEN];
-            char index[MACRO_LEN];
+            char *name = (char *)malloc(sizeof(char)*MACRO_LEN);
+            char *index = (char *)malloc(sizeof(char)*MACRO_LEN);
+            
+            if(op == 1)
+                operand2 = operand;
             /* Get the correct address mode for the destination operand */
             addmod = get_addmode(operand2, code, DST, &abs, &*macro_name);
 
@@ -328,16 +331,16 @@ is_instruction(line_t *pLINE)
                 strcpy(index, strtok(NULL, "]"));
                 instruction->symbol->instruction->destination->addmod = ADDMODE_2;
                 instruction->symbol->instruction->destination->op->name = name;
-                if(is_num(index))
+                if(is_num(index) != _12BIT_MIN)
                     instruction->symbol->instruction->destination->index = atoi(index);
                 else
                     instruction->symbol->instruction->destination->str_index = index;
-                instruction->symbol->instruction->destination->are = -1;
+                instruction->symbol->instruction->destination->are = 9999;
                 break;
             case ADDMODE_1:
                 instruction->symbol->instruction->destination->op->name = operand2;
                 instruction->symbol->instruction->destination->addmod = ADDMODE_1;
-                instruction->symbol->instruction->destination->are = -1;
+                instruction->symbol->instruction->destination->are = 9999;
                 break;
             case ADDMODE_0:
                 instruction->symbol->instruction->destination->addmod = ADDMODE_0;
@@ -368,7 +371,7 @@ is_instruction(line_t *pLINE)
         pLINE->parsed = instruction;
         pLINE->parsed->type = SYMBOL_CODE;
         pLINE->parsed->symbol->instruction->opcode = code;
-
+    
         SAFE_FREE(pst)
 
         return TRUE;

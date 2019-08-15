@@ -31,7 +31,7 @@ is_num(char *str)
 {
     char *ch;
     int num;
-    if(!*str)
+    if(!str)
         return _12BIT_MIN;
     num = (int) strtol(str, &ch,DECIMAL_BASE);
     
@@ -57,6 +57,8 @@ is_string(const char * const s)
 int
 is_name(char * s)
 {
+    if(!s)
+        return FALSE;
     return (is_string(s) && isalpha(s[0]) && !is_reserved(s));
 }
 

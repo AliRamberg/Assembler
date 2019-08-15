@@ -76,15 +76,15 @@ get_addmode(char *operand, unsigned code, int mode, int *abs, char *p_macro)
 {
     /* Supported addressing mode for current opcode */
     int sup_mode = opcodes[code][mode];
-
+    int tmplen;
     char tmp[LINE_LEN];
     char *macro;
 
     strcpy(tmp, operand);
-    
-    if((sup_mode & ADDMODE_0) && *(operand) == '#' && (is_name(++operand) || is_num(operand)))
+    tmplen = strlen(tmp);
+    if((sup_mode & ADDMODE_0) && *(tmp) == '#' && (is_name(++operand) || is_num(operand)))
     {
-        if(is_num(operand))
+        if(is_num(tmp))
             *abs = TRUE;
         else
             *abs = FALSE;
@@ -95,7 +95,7 @@ get_addmode(char *operand, unsigned code, int mode, int *abs, char *p_macro)
         *abs = TRUE;
         return ADDMODE_3;
     }
-    else if ((sup_mode & ADDMODE_2) && is_name(strtok(tmp, "[")) && (*(tmp + strlen(tmp)+ 1)))
+    else if ((sup_mode & ADDMODE_2) && is_name(strtok(tmp, "[")) && (tmplen != strlen(tmp)))
     {
             strcpy(p_macro, tmp);
             macro = strtok(NULL, "]");

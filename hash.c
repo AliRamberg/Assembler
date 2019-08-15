@@ -21,7 +21,7 @@ hash(char *str)
  * Fast string comparison using the above algorithm
  */
 int 
-strcmp_hash(char *str1, char *str2)
+strcmp_hash(char *s1, char *s2)
 {
-    return hash(str1) == hash(str2);
+    return hash(s1) == hash(s2);
 }
