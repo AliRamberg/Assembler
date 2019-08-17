@@ -50,7 +50,6 @@ encode(enum PARSE parse, line_t *pLINE, symbol_node **list)
         next_node(*&list, EMPTY_STRING, DC, SYMBOL_DATA_STRING);
         for(i = 0; i < pLINE->len; i++)
             data_arr[DC + i].reg = pLINE->parsed->symbol->directive->data[i];
-        DC += pLINE->len;
         break;
     
     case PARSED_INSTRUCTION:
@@ -268,6 +267,7 @@ encode_inst(line_t *pLINE, symbol_node **list)
 
     opcode = pLINE->parsed->symbol->instruction->opcode << 6;
     reg = opcode | (conv_addmod(src_addmode) << 4) | (conv_addmod(dst_addmode) << 2);
+
     /* INSTRUCTION FIRST WORD */
     instruction_arr[IC].reg = reg;
     
@@ -342,41 +342,66 @@ encode_inst(line_t *pLINE, symbol_node **list)
     }
     instruction_arr[IC].len = pLINE->len;
     IC += pLINE->len;
+    free_symbol(pLINE->parsed);
     return;
 }
 
 
 void
-complete_encoding(symbol_node *list, int start, int oIC)
+complete_encoding(symbol_node *list, int oIC)
 {
-    int i, j, src_addmode, dst_addmode;
+    int i, src_addmode, dst_addmode;
     char *src, *dst;
-       
-    for(i = start; i < oIC; i++)
+    
+
+    i = 0;
+    do
     {
-        int property;
         src = instruction_arr[i].src_name;
         dst = instruction_arr[i].dst_name;
         src_addmode = instruction_arr[i].src_addmod;
         dst_addmode = instruction_arr[i].dst_addmod;
 
-        for(j = 0; j < instruction_arr[i].len; j++);
 
-
-        if (!strcmp_hash(dst, EMPTY_STRING) && !(is_register(dst) != ERROR) && search_list(list, dst, 0, &property) && property != SYMBOL_MACRO)
+        /* Two words of addmode 2 */
+        if(instruction_arr[i].len == 5)
         {
-            if (!strcmp_hash(src, EMPTY_STRING) && search_list(list, src, 0, &property) && property != SYMBOL_MACRO && !(is_register(src) != ERROR))
+            build_relocatable_word(list, src, i + 1);
+            build_relocatable_word(list, dst, i + 3);
+            i += instruction_arr[i].len;
+        }
+        /* Each operand is of type 1 or 2 */
+        else if (src_addmode & ADDMODE_12 && dst_addmode & ADDMODE_12)
+        {
+            if(src_addmode & ADDMODE_2)
             {
                 build_relocatable_word(list, src, i + 1);
-                if(src_addmode == ADDMODE_2) i++;
-                i++;
+                build_relocatable_word(list, dst, i + 3);
             }
-            if((is_register(src) != ERROR)) i++;
-            if(dst_addmode == ADDMODE_2) i++;
-            build_relocatable_word(list, dst, i + 1);
-            i++;
+            else
+            {
+                build_relocatable_word(list, src, i + 1);
+                build_relocatable_word(list, dst, i + 2);
+            }
+            i += instruction_arr[i].len;
         }
-    }
+        else if(src_addmode & ADDMODE_12)
+        {
+            build_relocatable_word(list, src, i + 1);
+            i += instruction_arr[i].len;
+        }
+        else if(dst_addmode & ADDMODE_12)
+        {
+            if(src_addmode & ADDMODE_ALL)
+                build_relocatable_word(list, dst, i + 2);
+            else
+                build_relocatable_word(list, dst, i + 1);
+            i += instruction_arr[i].len;
+        }
+        else
+            i++;
+                
+    } while(i < oIC);
 
     return;
 }

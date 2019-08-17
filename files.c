@@ -90,6 +90,13 @@ fout(FILE *const filename)
         convertbits(filename, instruction_arr[i].reg);
         fprintf(filename, "\n");
     }
+    for(i = 0; i < DC; i++)
+    {
+        fprintf(filename, "%04d\t", IC + 100 + i);
+        print_bin(filename, (int) data_arr[i].reg);
+        convertbits(filename, data_arr[i].reg);
+        fprintf(filename, "\n");
+    }
     fclose(filename);
 }
 

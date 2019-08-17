@@ -12,6 +12,7 @@ typedef struct line_st
     char *line;
     char *label;
     int len; /* number of words required */
+    symbol_node *head; /* head of the linked list */
     symbol_t *parsed;
 } line_t;
 
@@ -31,7 +32,7 @@ enum PARSE
  * Main parsing function.
  * Checks for label, macro, directive and instruction properties of current line.
  */
-int parse_line(line_t *);
+int parse_line(line_t *pLINE);
 
 /**
  * Encode the current line to the symbol list and the DC/IC arrays
@@ -46,7 +47,7 @@ int entry_encode(char *entry, line_t *pLINE, symbol_node **list);
 /**
  * Final encoding for the second pass
  */
-void complete_encoding(symbol_node *list, int start, int oIC);
+void complete_encoding(symbol_node *list, int oIC);
 
 /**
  * Line that is commented or that is consists of whitespaces only

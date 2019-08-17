@@ -7,7 +7,7 @@
 #include "line.h"
 
 #define _12BIT_MAX 0xFFF  /* Biggest number for integer in word_t */
-#define _12BIT_MIN -0xFFF  /* Smallest number for integer in word_t */
+#define _12BIT_MIN (-0xFFF)  /* Smallest number for integer in word_t */
 /********************************************************************/
 /* Error Codes */
 #define NO_FILE 127
