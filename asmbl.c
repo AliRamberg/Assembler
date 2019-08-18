@@ -19,8 +19,13 @@ int
 main(int argc, char const *argv[])
 {
     int pass_return;
-    FILE *fptr, *pout;     /* pointer to file object */
-    symbol_node *list = NULL;
+    FILE *fptr, *pout, *pext, *pent;     /* pointer to file object */
+    symbol_node olist;
+    symbol_node *list = &olist;
+    olist.name = NULL;
+    olist.next = NULL;
+    olist.property = 0;
+    olist.value = 0;
 
 
     if (argc < 2)
@@ -68,15 +73,32 @@ main(int argc, char const *argv[])
             fclose(fptr);
             continue;
         }
+
+
+        /**
+         * Creating and formatting output files
+         * Creates 3 output files - object ,entry and external files.
+         */
+        pout = create_ext(cpyfile, ".ob");
+        pent = create_ext(cpyfile, ".ent");
+        pext = create_ext(cpyfile, ".ext");
+        strtok(cpyfile, ".");
+        if(pout && pent && pext)
+        {
+            fout(pout);
+            fout_entext(cpyfile, pext, pent);
+        }
+        else
+        {
+            fprintf(stderr, "Failed to create output files - object, entry or external\n");
+            return EXIT_FAILURE;
+        }
+    
+        
         fclose(fptr);
         fprintf(stdout, "Fishished assembling file %s\n", filename);
-
-        pout = create_ext(cpyfile, ".ob");
-        if(pout)
-            fout(pout);
-    
-        fclose(pout);
-
+        /* Free linked list */
+        free_list(list);
     }
     return EXIT_SUCCESS;
 }

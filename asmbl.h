@@ -63,7 +63,7 @@ struct WORD_T
     char *dst_name;     /* if the destination is a label or a macro */
     char *dst_index;    /* if the destination is of addmode 2 and needs an index */
     int dst_addmod;     /* destination word addressing mode */
-    char *name;         /* Actual used name to be searched in the list or outputed to file */
+    char name[MACRO_LEN];         /* Actual used name to be searched in the list or outputed to file */
     signed int reg:14;  /* actual word */
 };
 typedef struct WORD_T WORD_T;
