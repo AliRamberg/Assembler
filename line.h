@@ -1,11 +1,9 @@
 #ifndef LINE_H
 #define LINE_H
 
+#include "asmbl.h"
 #include "symbols.h"
 
-#define LINE_LEN 80       /* Line maximum length */
-#define LABEL_LEN 31      /* Label maximum length */
-#define MACRO_LEN 20      /* macro maximum length - length of ".define" or ".data" */
 
 typedef struct line_st
 {
@@ -59,5 +57,7 @@ int skip_lines_sec_pass(line_t *pLINE);
  * Check if line is an entry statement and adds it to the linked list
  */
 int is_entry(line_t *pLINE, symbol_node *list);
+void get_entries(symbol_node *list);
+
 
 #endif

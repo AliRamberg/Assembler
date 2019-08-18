@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+#include "line.h"
 #include "files.h"
 #include "opcodes.h"
-#include "asmbl.h"
 #include "globals.h"
 
 void print_bin(FILE *filename, int bin);
@@ -83,6 +83,7 @@ fout(FILE *const filename)
     int i;
     if(!filename)
         return;
+    fprintf(filename, "%4d\t%d\n", IC, DC);
     for (i = 0; i < IC; i++)
     {
         fprintf(filename, "%04d\t", i + 100);
@@ -125,26 +126,27 @@ print_bin(FILE *filename, signed bin)
 void
 fout_entext(char *filename, FILE *pext, FILE *pent)
 {
-    size_t i;
-    int ext = FALSE, ent = FALSE;
+    size_t i, ent_size, ext_size;
     if(!filename || !pext || !pent)
         return;
     for (i = 0; i < IC; i++)
     {
         if(instruction_arr[i].type == SYMBOL_EXTERNAL)
-        {
-            fprintf(pext, "%0ld\t%s", i, instruction_arr[i].name);
-            ext = TRUE;
-        }
-        if(instruction_arr[i].type == SYMBOL_ENTRY)
-        {
-            fprintf(pent, "%0ld\t%s", i, instruction_arr[i].name);
-            ent = TRUE;
-        }
+            fprintf(pext, "%s\t%0ld\n", instruction_arr[i].name, i + 100);
     }
-    if(!ext)
+    for(i = 0; i < 2; i++)
+    {
+        fprintf(pent, "%s\t%d\n", entries[i].name, entries[i].reg);
+    }
+
+    fseek(pent, 0L, SEEK_END);
+    ent_size = ftell(pent);
+    fseek(pext, 0L, SEEK_END);
+    ext_size = ftell(pext);
+
+    if(!ext_size)
         remove(strcat(filename, ".ext"));
-    if(!ent)
+    if(!ent_size)
         remove(strcat(filename, ".ent"));
     fclose(pext);
     fclose(pent);

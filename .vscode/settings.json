@@ -10,7 +10,9 @@
         "stdlib.h": "c",
         "typeinfo": "c",
         "symbol.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "symbols.h": "c",
+        "files.h": "c"
     },
     "objectscript.conn.active": false
 }

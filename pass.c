@@ -12,14 +12,17 @@
 int
 first_pass(FILE *fptr, symbol_node **list)
 {
+    void *pfree;
     char *line = (char *)malloc(sizeof(char) * (LINE_LEN + 2));
     line_t *pLINE = (line_t *)malloc(sizeof(line_t));
     enum PARSE parse;
     int result = FALSE;
 
+    pfree = line;
+
     if(!line || !pLINE)
         return -1;
-
+    pLINE->head = *list; /* link the head of the symbol list to the line object */
     line_num = 0;   /* source code line number */
     IC = 0;  /* Instruction Counter */
     DC = 0;  /* Data Counter */
@@ -27,7 +30,7 @@ first_pass(FILE *fptr, symbol_node **list)
     /* Reading line by line of the file */
     while (fgets(line, LINE_LEN + 2, fptr) != NULL)
     {
-        pLINE->line = line;
+        pLINE->line = trim_white(line);
 
         /* Clear newline characters from end of line with null terminator */
         if(line[strlen(line) - 1] == '\n')
@@ -50,15 +53,16 @@ first_pass(FILE *fptr, symbol_node **list)
 
 
         /* main parsing function, the result is encoded directly to the instructions array */
-        parse = parse_line(pLINE);                    
-        result = encode(parse, pLINE, list);   
+        parse = parse_line(pLINE);
+        result = encode(parse, pLINE, list);
     }
 
     /* Update the value of all the data symbols by IC+100 */
+    LINE_FREE(pLINE);
     update_data(*list);
 
     /* free the last line_t object; all other dynamically objects will be cleaned on exit main */
-    LINE_FREE(pLINE);
+    SAFE_FREE(pfree)
     
     return result;
 }
@@ -67,10 +71,11 @@ first_pass(FILE *fptr, symbol_node **list)
 int
 second_pass(FILE *fptr, symbol_node **list, int oIC)
 {
+    void *pfree;
     char *line = (char *)malloc(sizeof(char)*LINE_LEN);
-    int start = 0;
     line_t *pLINE = (line_t *)malloc(sizeof(line_t));
 
+    pfree = line;
     /* Resetting the instruction counter and the line number */
     IC = 0;
     line_num = 0;
@@ -103,13 +108,17 @@ second_pass(FILE *fptr, symbol_node **list, int oIC)
         /* Entry statements is added to the linked list, the next line is scanned afterwards */
         if((is_entry(pLINE, *list)))
             continue;
-        
-        /* Final encoding of the words in the instructions list */
-        complete_encoding(*list, start++, oIC); 
     }
+
+    /* Final encoding of the words in the instructions list */
+    complete_encoding(*list, oIC); 
+
+    get_entries(*list);
 
     /* Free linked list */
     free_list(*&list);
+    SAFE_FREE(pfree)
+    SAFE_FREE(pLINE)
     
     return 0;
 }

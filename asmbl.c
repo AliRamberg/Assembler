@@ -97,8 +97,6 @@ main(int argc, char const *argv[])
         
         fclose(fptr);
         fprintf(stdout, "Fishished assembling file %s\n", filename);
-        /* Free linked list */
-        free_list(list);
     }
     return EXIT_SUCCESS;
 }

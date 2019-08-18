@@ -10,7 +10,7 @@
 
 
 char *strsub(char *, size_t , char *);
-char *is_label(char *);
+int is_label(line_t *pLINE);
 int is_macro(line_t *);
 int is_directive(line_t *);
 int is_instruction(line_t *);
@@ -18,24 +18,16 @@ int is_instruction(line_t *);
 enum PARSE 
 parse_line(line_t *pLINE)
 {
-    char *label;
     int res = NOT_PARSED;
-
-    /* Trim whitespaces */
-    clear_str(pLINE->line);
 
     /********************************************\
                         LABELS
     \********************************************/
-    if((label = is_label(pLINE->line)))
+    if(is_label(pLINE))
     {
         res |= PARSED_LABEL;
-        pLINE->label = label;
-
-        /* strtok label from line, thus taking only the substring */
-        strtok(pLINE->line, " \t");
-        /* pLINE->line += strlen(pLINE->label) + 1; */
-        pLINE->line = strtok(NULL, "\0");
+        /* Trim whitespaces */
+        pLINE->line = clear_str(pLINE->line);
     }
     else
         pLINE->label = NULL;
@@ -69,21 +61,22 @@ parse_line(line_t *pLINE)
 int
 is_directive(line_t *pLINE)
 {
-    char *type, *ch, *data, *tmp;
+    char *type, *ch, *data, *tmp, *st;
     symbol_t *directive;
     
-    tmp = (char *)malloc(sizeof(char)*LINE_LEN);
+    st = tmp = (char *)malloc(sizeof(char)*LINE_LEN);
     strcpy(tmp, pLINE->line);
 
     ch = tmp;
-    data = (char *)malloc(sizeof(char)*LINE_LEN);
     
-
     /* trim whitespaces from start */
-    while(isspace(*ch++));
+    while(isspace(*ch)) ch++;
 
-    if(*(--ch) != '.')
+    if(*(ch) != '.' || !tmp)
+    {
+        SAFE_FREE(tmp)
         return FALSE;
+    }
     
     type = strtok(ch,  " ");
     data = strtok(NULL, "\0");
@@ -96,22 +89,32 @@ is_directive(line_t *pLINE)
         int i = 0;
         int num;
         char *tmp, tmp_data[LINE_LEN];
+        int property, value;
         strcpy(tmp_data, data);
         tmp = strtok(tmp_data, ",");
         if(!(directive = init_symbol(SYMBOL_DATA_NUMBERS)))
         {
             ERROR_MSG("Failed to allocate memory for symbol_t")
+            SAFE_FREE(st)
             return FALSE;
         }
         
         while(tmp)
         {
-            if((num = is_num(tmp)) != _12BIT_MIN)
-                directive->symbol->directive->nums[i++] = num;
-            tmp = strtok(NULL, ",");
+            if(((num = is_num(tmp)) != _12BIT_MIN) || (search_list(pLINE->head, tmp, &value, &property) && property & SYMBOL_MACRO))
+            {
+                if(num != _12BIT_MIN)
+                    directive->symbol->directive->nums[i++] = num;  /* the number has parsed succesfully */
+                else if(is_valid(value))
+                    directive->symbol->directive->nums[i++] = value; /* found the macro value in the list */
+                else
+                    ERROR_MSG("Failed to build .data values")
+            }
+            tmp = clear_str(strtok(NULL, ","));
         }
         pLINE->len = i;
         pLINE->parsed = directive;
+        SAFE_FREE(st)
         return TRUE;
     }
     /***************************************************************************************/
@@ -131,69 +134,62 @@ is_directive(line_t *pLINE)
                 
                 /* Validates the characters in the string are of the ascii family */
                 if(!is_string(data))
-                        ERROR_MSG("The assembler doesn't support non-ascii characters")
+                    ERROR_MSG("The assembler doesn't support non-ascii characters")
 
                 directive->symbol->directive->data = data;
                 pLINE->len = strlen(data) + 1 ;
                 pLINE->parsed = directive;
+                SAFE_FREE(st)
                 return TRUE;
             }
             else
             {
                 ERROR_MSG("Failed to allocate memory for symbol_t")
+                SAFE_FREE(st)
                 return FALSE;
             }
         }
         else
         {
             ERROR_MSG("Data is not enclosed with quatation marks")
+            SAFE_FREE(st)
             return FALSE;
         }        
     }
     /***************************************************************************************/
-    /*   
+    
     else if (strcmp_hash(type, ".entry"))
-        {
-            DO NOTHING IF FOUND .entry
-        } 
-    */
+    {
+        if((directive = init_symbol(SYMBOL_DATA_STRING)))
+            directive->symbol->directive->data = data;
+        pLINE->parsed = directive;
+        pLINE->parsed->type = SYMBOL_ENTRY;
+        return TRUE;
+    } 
+    
     else if (strcmp_hash(type, ".extern"))
     {
-        char *tmp, tmp_data1[LINE_LEN];
         int len = 0;
         trim_white(data);
-        strcpy(tmp_data1, data);
 
-        tmp = strtok(tmp_data1, ",");
-        while(tmp)
+        if(!is_name(data))
         {
-            if(is_string(tmp) && isdigit(tmp[0]))
-            {
-                tmp = strtok(NULL, ",");
-                len++;
-            }
-            else
-            {
-                ERROR_MSG("Illegal symbol name")
-                return FALSE;
-            }
-            
+            ERROR_MSG("Illegal symbol name")
+            SAFE_FREE(st)
+            return FALSE;
         }
-
         if((directive = init_symbol(SYMBOL_DATA_STRING)))
         {
-            directive->symbol->directive->data = data;
+            strcpy(directive->symbol->directive->data, data);
             pLINE->parsed = directive;
             pLINE->parsed->type = SYMBOL_EXTERNAL;
             pLINE->len = len;
+            SAFE_FREE(st)
             return TRUE;
         }
-        else
-            return FALSE;         
     }
     
-    SAFE_FREE(type)
-    SAFE_FREE(data)
+    SAFE_FREE(st)
     
 
     return FALSE;
@@ -275,12 +271,12 @@ is_instruction(line_t *pLINE)
                     instruction->symbol->instruction->source->index = atoi(index);
                 else
                     instruction->symbol->instruction->source->str_index = index;
-                instruction->symbol->instruction->source->are = 9999;
+                instruction->symbol->instruction->source->are = _12BIT_MIN;
                 break;
             case ADDMODE_1:
                 instruction->symbol->instruction->source->op->name = operand;
                 instruction->symbol->instruction->source->addmod = ADDMODE_1;
-                instruction->symbol->instruction->source->are = 9999;
+                instruction->symbol->instruction->source->are = _12BIT_MIN;
                 break;
             case ADDMODE_0:
                 instruction->symbol->instruction->source->addmod = ADDMODE_0;
@@ -441,11 +437,11 @@ is_macro(line_t *pLINE)
 /**
  * Check if line contains a label, returns the label name if exists.
  */
-char *
-is_label(char *line)
+int
+is_label(line_t *pLINE)
 {
     char *st, *ch, *label;
-    ch  = line;
+    ch  = pLINE->line;
     while(isspace(*ch++));
     st = ch - 1;
     if(isalpha(*st))
@@ -456,26 +452,29 @@ is_label(char *line)
         /* Reached the end of the label title */
         if(*ch == ':' && isspace(*(ch + 1)))
         {
-            label = strsub(st, ch - st, line);
+            label = malloc(LABEL_LEN);
+            strcpy(label, strtok(st, ":"));
+            pLINE->line = strtok(NULL, "\0");
 
             /* Label is too long */
             if(ch - st > LABEL_LEN)
             {
                 ERROR_MSG("Label is too long.")
                 SAFE_FREE(label);
-                return NULL;
+                return FALSE;
             }
             /* Label is a reserved word */
             if(is_reserved(label))
             {
                 ERROR_MSG("Label name is a reserved word")
                 SAFE_FREE(label);
-                return NULL;
+                return FALSE;
             }
-            return label;
+            pLINE->label = label;
+            return TRUE;
         }
     }
-    return NULL;
+    return FALSE;
 }
 
 /* Is the line completely blank? */
@@ -535,12 +534,14 @@ strsub(char *pos, size_t len, char *str)
 int
 skip_lines_sec_pass(line_t *pLINE)
 {
-    if(is_label(pLINE->line))
+    char *ch, *st = ch = pLINE->line;
+    if(isalpha(*st))
     {
-        /* strtok label from line, thus taking only the substring */
-        strtok(pLINE->line, " \t");
-        /* pLINE->line += strlen(pLINE->label) + 1; */
-        pLINE->line = strtok(NULL, "\0");
+        /* Iterate over the characters of the line until reaching the end of the label title */
+        while(isalnum(*ch) && *ch  != ':') ch++;
+        /* Reached the end of the label title */
+        if(*ch == ':')
+            pLINE->line = clear_str(++ch);
     }
     if(strncmp(pLINE->line, ".data", strlen(".data") - 1) == 0)
         return TRUE;
@@ -560,7 +561,6 @@ is_entry(line_t *pLINE, symbol_node *list)
 {
     char tmp[LINE_LEN];
     char *entry;
-    strcpy(tmp, pLINE->line);
     strtok(tmp, " \t");
     if(strcmp_hash(tmp, ".entry"))
     {

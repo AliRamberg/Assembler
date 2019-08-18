@@ -4,7 +4,7 @@
 #include "asmbl.h"
 #include "symbols.h"
 #include "misc.h"
-#include "line.h"
+#include "files.h"
 #include "line.h"
 #include "opcodes.h"
 #include "globals.h"
@@ -27,6 +27,7 @@ int
 encode(enum PARSE parse, line_t *pLINE, symbol_node **list)
 {
     int i, ERR_FLAG = FALSE;
+    int value, property;
     char tmp[LABEL_LEN];
     switch ((int) parse)
     {
@@ -42,9 +43,14 @@ encode(enum PARSE parse, line_t *pLINE, symbol_node **list)
         break;
 
     case PARSED_DIRECTIVE:
-        if(pLINE->parsed->type == SYMBOL_EXTERNAL)
+        if(pLINE->parsed->type == SYMBOL_ENTRY )
         {
-            next_node(*&list, EMPTY_STRING, IC + 100, SYMBOL_EXTERNAL);
+            next_node(*&list, pLINE->parsed->symbol->directive->data, IC + 100, SYMBOL_ENTRY);
+            break;
+        }
+        if(pLINE->parsed->type == SYMBOL_EXTERNAL )
+        {
+            next_node(*&list, pLINE->parsed->symbol->directive->data, IC + 100, SYMBOL_EXTERNAL);
             break;
         }
         next_node(*&list, EMPTY_STRING, DC, SYMBOL_DATA_STRING);
@@ -57,23 +63,29 @@ encode(enum PARSE parse, line_t *pLINE, symbol_node **list)
         break;
         
     case PARSED_LABEL:
-        if(!(search_list(*list, pLINE->label, NULL, NULL) != ERROR))
+        if((search_list(*list, pLINE->label, NULL, &property) != ERROR) && property != SYMBOL_ENTRY)
+        {
+            ERROR_MSG("Label name was already set")
+            ERR_FLAG = TRUE;
+            break;
+        }
+        else
         {
             next_node(*&list, pLINE->label, IC + 100, SYMBOL_CODE);
             IC++;
         }
-        else
-        {
-            ERROR_MSG("Label name was already set")
-            ERR_FLAG = TRUE;
-        }
-        break;
     case (PARSED_LABEL | PARSED_MACRO):
         ERROR_MSG("No label is allowed on a macro line")
         ERR_FLAG = TRUE;
         break;
     case (PARSED_LABEL | PARSED_DIRECTIVE):
-        if(!(search_list(*list, pLINE->label, NULL, NULL) != ERROR))
+        if((search_list(*list, pLINE->label, &value, &property) != ERROR) && property != SYMBOL_ENTRY)
+        {
+            ERROR_MSG("Label name was already set")
+            ERR_FLAG = TRUE;
+            break;
+        }
+        else
         {
             /* .string */
             if (pLINE->parsed->type == SYMBOL_DATA_STRING)
@@ -98,12 +110,6 @@ encode(enum PARSE parse, line_t *pLINE, symbol_node **list)
             break;                
         
         }
-        else
-        {
-            ERROR_MSG("Label name was already set")
-            ERR_FLAG = TRUE;
-        }
-        break;
     case (PARSED_LABEL | PARSED_INSTRUCTION):
         if(!(search_list(*list, pLINE->label, NULL, NULL) != ERROR))
         {
@@ -192,12 +198,13 @@ build_relocatable_word(symbol_node *list, char *name, int index)
 {
     int value = -1, property = -1;
     search_list(list, name, &value, &property);
-    if((value != ERROR) && property != SYMBOL_EXTERNAL)
+    if((value != ERROR) && (property & ~(SYMBOL_EXTERNAL | SYMBOL_ENTRY)))
     {
         instruction_arr[index].reg = (value << 2) | RELOCATABLE;
         return;
     }
-    ERROR_MSG("Failed to find relocatable symbol")
+    else
+        instruction_arr[index].reg = 0 | EXTERNAL; /* if not found create a default external refertence */
     return;
 }
 
@@ -206,9 +213,9 @@ void
 build_external_word(symbol_node *list, char *name, int index)
 {
     int value, property;
-    if((search_list(list, name, &value, &property) != ERROR) && property == SYMBOL_EXTERNAL)
+    if((search_list(list, name, &value, &property) != ERROR) && (property & (SYMBOL_EXTERNAL | SYMBOL_ENTRY)))
     {
-        instruction_arr[index].reg = (value << 2) | EXTERNAL;
+        instruction_arr[index].reg = 0 | EXTERNAL;
         return;
     }
     ERROR_MSG("Failed to find external symbol")
@@ -234,6 +241,7 @@ encode_inst(line_t *pLINE, symbol_node **list)
     
     char *src_name, *dst_name;
     int property, value, opcode, reg;
+    property = value = opcode = reg = 0;
     src_name = (char *)calloc(sizeof(char), MACRO_LEN);
     dst_name = (char *)calloc(sizeof(char), MACRO_LEN);
 
@@ -289,7 +297,17 @@ encode_inst(line_t *pLINE, symbol_node **list)
     {
         instruction_arr[IC].src_addmod = src_addmode;
 
-        if(src_are == ABSOLUTE)
+        
+
+        if(property & SYMBOL_EXTERNAL)
+        {
+            build_external_word(*list, src_name, IC + i);
+            instruction_arr[IC].len = pLINE->len;
+            strcpy(instruction_arr[IC].name, src_name);
+            instruction_arr[IC].type = SYMBOL_EXTERNAL;
+        }
+
+        else if(src_are == ABSOLUTE)
         {
             if(!*src_name)
                 build_absolute_word(*list, NULL, src_val, TRUE, IC + i);
@@ -302,7 +320,7 @@ encode_inst(line_t *pLINE, symbol_node **list)
 
         if(src_addmode == ADDMODE_2)
         {
-            if(src_index != -1)
+            if(src_index != _12BIT_MIN)
                 build_absolute_word(*list, NULL, src_index, TRUE, IC + i);
             else
                 build_relocatable_word(*list, pLINE->parsed->symbol->instruction->source->str_index, IC + i);
@@ -315,6 +333,13 @@ encode_inst(line_t *pLINE, symbol_node **list)
     if(pLINE->len > 1)
     {
         instruction_arr[IC].dst_addmod = dst_addmode;
+        if((search_list(*list, dst_name, NULL, &property) != ERROR) && (property & SYMBOL_EXTERNAL))
+        {
+            build_external_word(*list, dst_name, IC + i);
+            instruction_arr[IC].len = pLINE->len;
+            strcpy(instruction_arr[IC].name, dst_name);
+            instruction_arr[IC].type = SYMBOL_EXTERNAL;
+        }
 
         if(dst_are == ABSOLUTE)
         {
@@ -326,12 +351,15 @@ encode_inst(line_t *pLINE, symbol_node **list)
         /* only macros */
         else if((search_list(*list, src_name, &value, &property) != ERROR) && (property & SYMBOL_MACRO))
             build_relocatable_word(*list, dst_name, IC + i);
+            
         i++;
 
         if(dst_addmode == ADDMODE_2)
         {
-            if(dst_index != -1)
+            if(dst_index != _12BIT_MIN)
                 build_absolute_word(*list, NULL, dst_index, TRUE, IC + i);
+            else if((search_list(*list, pLINE->parsed->symbol->instruction->destination->str_index, &value, &property) != ERROR) && (property & SYMBOL_MACRO))
+                build_absolute_word(*list, pLINE->parsed->symbol->instruction->destination->str_index, _12BIT_MIN, FALSE, IC + i);
             else
                 build_relocatable_word(*list, pLINE->parsed->symbol->instruction->destination->str_index, IC + i);
             
@@ -342,7 +370,7 @@ encode_inst(line_t *pLINE, symbol_node **list)
     }
     instruction_arr[IC].len = pLINE->len;
     IC += pLINE->len;
-    free_symbol(pLINE->parsed);
+    /* free_symbol(pLINE->parsed); */
     return;
 }
 
@@ -350,11 +378,10 @@ encode_inst(line_t *pLINE, symbol_node **list)
 void
 complete_encoding(symbol_node *list, int oIC)
 {
-    int i, src_addmode, dst_addmode;
+    int i = 0, src_addmode, dst_addmode;
+    int property_src, property_dst;
     char *src, *dst;
     
-
-    i = 0;
     do
     {
         src = instruction_arr[i].src_name;
@@ -362,6 +389,12 @@ complete_encoding(symbol_node *list, int oIC)
         src_addmode = instruction_arr[i].src_addmod;
         dst_addmode = instruction_arr[i].dst_addmod;
 
+        trim_white(src);
+        trim_white(dst);
+        if(src)
+            search_list(list, src, NULL, &property_src);
+        if(dst)
+            search_list(list, dst, NULL, &property_dst);
 
         /* Two words of addmode 2 */
         if(instruction_arr[i].len == 5)
@@ -404,4 +437,26 @@ complete_encoding(symbol_node *list, int oIC)
     } while(i < oIC);
 
     return;
+}
+
+void
+get_entries(symbol_node *list)
+{
+    int i, j = i = 0;
+    int value, property;
+    symbol_node *tmp = list;
+    while (tmp)
+    {
+        if(tmp->property == SYMBOL_ENTRY)
+            strcpy(entries[i++].name, tmp->name);
+        tmp = tmp->next;
+    }
+    tmp = list;
+    for(j = 0; j < i; i++)
+    {
+        /* TODO TOMMOROOW */
+        
+        if(property == SYMBOL_CODE)
+            entries[j].reg = value;
+    }
 }

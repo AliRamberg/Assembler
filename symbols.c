@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
+#include "line.h"
+#include "asmbl.h"
 #include "misc.h"
 #include "symbols.h"
 #include "opcodes.h"
-#include "asmbl.h"
 #include "globals.h"
 
 
@@ -46,7 +47,7 @@ init_symbol(enum SYMBOL type)
 void
 free_symbol(symbol_t *sym)
 {
-    if(!sym->symbol)
+    if(!sym || !sym->symbol)
         return;
     switch (sym->type)
     {
@@ -68,13 +69,25 @@ free_symbol(symbol_t *sym)
         SAFE_FREE(sym)
         return;
     case SYMBOL_CODE:
-        SAFE_FREE(sym->symbol->instruction->source->op->name)
-        SAFE_FREE(sym->symbol->instruction->destination->op->name)
-        SAFE_FREE(sym->symbol->instruction->source->op)
-        SAFE_FREE(sym->symbol->instruction->destination->op)
-        SAFE_FREE(sym->symbol->instruction->source)
-        SAFE_FREE(sym->symbol->instruction->destination)
-        SAFE_FREE(sym->symbol->instruction)
+        /* SAFE_FREE(sym->symbol->instruction->source->op->name) */
+        /* SAFE_FREE(sym->symbol->instruction->destination->op->name) */
+        if(sym->symbol->instruction->source->op)
+            SAFE_FREE(sym->symbol->instruction->source->op)
+        if(sym->symbol->instruction->destination->op)
+            SAFE_FREE(sym->symbol->instruction->destination->op)
+        if(sym->symbol->instruction->source)
+            SAFE_FREE(sym->symbol->instruction->source)
+        if(sym->symbol->instruction->destination)
+            SAFE_FREE(sym->symbol->instruction->destination)
+        if(sym->symbol->instruction)
+            SAFE_FREE(sym->symbol->instruction)
+        if(sym->symbol)
+            SAFE_FREE(sym->symbol)
+        if(sym)
+            SAFE_FREE(sym)
+        return;
+    case SYMBOL_ENTRY:
+        SAFE_FREE(sym->symbol->directive)
         SAFE_FREE(sym->symbol)
         SAFE_FREE(sym)
         return;
@@ -179,14 +192,16 @@ init_code()
         SAFE_FREE(src_op)
         return NULL;
     }
+
     src_op->name = NULL;
     dst_op->name = NULL;
     destination->op = dst_op;
     source->op = src_op;
     code->source = source;
     code->destination = destination;
-    data_symbol->symbol = symbol;
     symbol->instruction = code;
+    data_symbol->symbol = symbol;
+    
     return data_symbol;
 }
 
@@ -211,8 +226,15 @@ next_node(symbol_node **list, char *name, int value, enum SYMBOL property)
     node->property = property;
     node->next = NULL;
 
-    if(!*list)
-        *list = node;
+    if(!(*list))
+    {
+        (*list)->name = node_name;
+        (*list)->value = value;
+        (*list)->property = property;
+        (*list)->next = NULL;
+        SAFE_FREE(node)
+        return *list;
+    }
     
 
     /* The list is not empty; get the last node andn set it */
@@ -236,6 +258,8 @@ search_list(const symbol_node *list, char *name, int *value, int *property)
 {
     char s[LINE_LEN];
     symbol_node **tmp = (symbol_node **) &list;
+    if(!name)
+        return ERROR;
     strcpy(s, name);
 
     while((*tmp))
@@ -258,17 +282,16 @@ search_list(const symbol_node *list, char *name, int *value, int *property)
 void 
 free_list(symbol_node **list)
 {
-    symbol_node *tmp = *list;
-    while(tmp)
+    symbol_node **tmp = list;
+    while(*tmp)
     {
-        tmp->property = 0;
-        tmp->value = 0;
         
         *list = (*list)->next;
-        if(tmp->name)
-            SAFE_FREE(tmp->name)
-        SAFE_FREE(tmp)
-        tmp = *list;
+        if((*tmp)->name)
+            SAFE_FREE((*tmp)->name)
+        if(*tmp)
+            SAFE_FREE(*tmp)
+        *tmp = *list;
     }
 }
 

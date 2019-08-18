@@ -21,6 +21,11 @@
 #define INITIAL_IC_ARR 100
 #define INITIAL_DC_ARR 100
 
+#define LINE_LEN 80       /* Line maximum length */
+#define LABEL_LEN 31      /* Label maximum length */
+#define MACRO_LEN 20      /* macro maximum length - length of ".define" or ".data" */
+
+
 /**
  * Opcodes Instructions
  */
@@ -71,5 +76,6 @@ typedef struct WORD_T WORD_T;
 /* Instructions and Data binary words */
 WORD_T instruction_arr[INITIAL_IC_ARR];
 WORD_T data_arr[INITIAL_DC_ARR];
+WORD_T entries[20];
 
 #endif

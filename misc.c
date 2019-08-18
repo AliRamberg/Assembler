@@ -98,7 +98,7 @@ is_opcode(char *s)
         "dec", "jmp", "bne", "red",
         "prn", "jsr", "rts", "stop"
     };
-
+    
     for(i = 0; i < OPCODE_NUM; i++)
         if(strcmp_hash(s, reserved_opcodes[i]))
                 return i;
@@ -130,7 +130,8 @@ clear_str(char *str)
 {   
     char *ch = str;
     while(ch && isspace(*ch++));
-    ch = trim_white(--ch);
+    if(ch)
+        ch = trim_white(--ch);
     return ch;
 }
 
