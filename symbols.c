@@ -264,7 +264,7 @@ search_list(const symbol_node *list, char *name, int *value, int *property)
 
     while((*tmp))
     {
-        if(strcmp_hash((*tmp)->name, s))
+        if(strcmp_hash((*tmp)->name, s) && (*tmp)->property  & ~(SYMBOL_ENTRY | SYMBOL_EXTERNAL))
         {
             if(property)
                 *property = (*tmp)->property;
@@ -277,7 +277,27 @@ search_list(const symbol_node *list, char *name, int *value, int *property)
     return ERROR;
 }
 
+int
+search_list_property(const symbol_node *list, char *name, int *value, int property)
+{
+    char s[LINE_LEN];
+    symbol_node **tmp = (symbol_node **) &list;
+    if(!name)
+        return ERROR;
+    strcpy(s, name);
 
+    while((*tmp))
+    {
+        if(strcmp_hash((*tmp)->name, s) && ((*tmp)->property == property))
+        {
+            if(value)
+                *value = (*tmp)->value;
+            return (*tmp)->value;
+        }
+        (*tmp) = (*tmp)->next;
+    }
+    return ERROR;
+}
 
 void 
 free_list(symbol_node **list)
@@ -301,7 +321,7 @@ update_data(symbol_node *list)
     symbol_node *tmp = list;
     while (tmp)
     {
-        if(tmp->property == SYMBOL_DATA_NUMBERS || tmp->property == SYMBOL_DATA_STRING)
+        if(tmp->property & (SYMBOL_DATA_NUMBERS | SYMBOL_DATA_STRING))
             tmp->value += IC + 100;
         tmp = tmp->next;
     }

@@ -86,6 +86,7 @@ typedef struct symbol_node
 symbol_t *init_symbol(enum SYMBOL type);
 symbol_node *next_node(symbol_node **list, char *name, int value, enum SYMBOL property);
 int search_list(const symbol_node *list, char *name, int *value, int *property);
+int search_list_property(const symbol_node *list, char *name, int *value, int property);
 void free_list(symbol_node **list);
 void free_symbol(symbol_t *symbol);
 void update_data(symbol_node *list);

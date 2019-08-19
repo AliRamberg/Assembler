@@ -212,8 +212,8 @@ build_relocatable_word(symbol_node *list, char *name, int index)
 void
 build_external_word(symbol_node *list, char *name, int index)
 {
-    int value, property;
-    if((search_list(list, name, &value, &property) != ERROR) && (property & (SYMBOL_EXTERNAL | SYMBOL_ENTRY)))
+    int value;
+    if(search_list_property(list, name, &value, SYMBOL_EXTERNAL))
     {
         instruction_arr[index].reg = 0 | EXTERNAL;
         return;
@@ -297,9 +297,9 @@ encode_inst(line_t *pLINE, symbol_node **list)
     {
         instruction_arr[IC].src_addmod = src_addmode;
 
-        
+        search_list_property(*list, src_name, &value, SYMBOL_EXTERNAL);
 
-        if(property & SYMBOL_EXTERNAL)
+        if(value)
         {
             build_external_word(*list, src_name, IC + i);
             instruction_arr[IC].len = pLINE->len;
@@ -333,7 +333,9 @@ encode_inst(line_t *pLINE, symbol_node **list)
     if(pLINE->len > 1)
     {
         instruction_arr[IC].dst_addmod = dst_addmode;
-        if((search_list(*list, dst_name, NULL, &property) != ERROR) && (property & SYMBOL_EXTERNAL))
+        search_list_property(*list, dst_name, &value, SYMBOL_EXTERNAL);
+
+        if(value)
         {
             build_external_word(*list, dst_name, IC + i);
             instruction_arr[IC].len = pLINE->len;
@@ -443,7 +445,6 @@ void
 get_entries(symbol_node *list)
 {
     int i, j = i = 0;
-    int value, property;
     symbol_node *tmp = list;
     while (tmp)
     {
@@ -452,11 +453,15 @@ get_entries(symbol_node *list)
         tmp = tmp->next;
     }
     tmp = list;
-    for(j = 0; j < i; i++)
-    {
-        /* TODO TOMMOROOW */
-        
-        if(property == SYMBOL_CODE)
-            entries[j].reg = value;
-    }
+        while (tmp)
+        {
+            j = 0;
+            do
+            {
+                if(tmp->property & (SYMBOL_CODE | SYMBOL_DATA_NUMBERS | SYMBOL_DATA_STRING) && strcmp_hash(tmp->name, entries[j].name))
+                    entries[j].reg = tmp->value;
+            } while (j++ < i);
+            tmp = tmp->next;
+        }
+        tmp = list;
 }
